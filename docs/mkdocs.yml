@@ -1,6 +1,6 @@
 site_name: Philterd Policy Editor
-repo_url: https://github.com/philterd/philterd-policy-editor
-site_url: https://philterd.github.io/philterd-policy-editor//
+repo_url: https://github.com/philterd/philterd-redaction-policy-editor
+site_url: https://philterd.github.io/philterd-redaction-policy-editor/
 edit_uri: '?query=docs/docs/'
 copyright: Copyright 2026 Philterd, LLC
 site_author: philterd

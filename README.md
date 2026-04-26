@@ -2,7 +2,7 @@
 
 The Philterd Policy Editor provides a user-friendly web interface for building and managing redaction policies for [Philter](https://www.github.com/philterd/philter) and [Phileas](https://github.com/philterd/phileas).
 
-Documentation is available at https://philterd.github.io/philterd-policy-editor/
+Documentation is available at https://philterd.github.io/philterd-redaction-policy-editor/
 
 ## Features
 
