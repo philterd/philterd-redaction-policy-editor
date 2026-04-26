@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>ai.philterd</groupId>
 	<artifactId>policy-editor</artifactId>
@@ -41,6 +41,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>philterd-policy-editor</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

@@ -1,6 +1,8 @@
 # Philterd Policy Editor
 
-The Philterd Policy Editor provides a user-friendly web interface for building and managing redaction policies for [Philter](https://www.philterd.ai) and [Phileas](https://github.com/philterd/phileas).
+The Philterd Policy Editor provides a user-friendly web interface for building and managing redaction policies for [Philter](https://www.github.com/philterd/philter) and [Phileas](https://github.com/philterd/phileas).
+
+Documentation is available at https://philterd.github.io/philterd-policy-editor/
 
 ## Features
 
@@ -12,46 +14,12 @@ The Philterd Policy Editor provides a user-friendly web interface for building a
 
 ## Getting Started
 
-### Prerequisites
-
-- **Docker** and **Docker Compose** (recommended)
-- OR **Java 17** and **Maven 3.x** (for local builds)
-
-### Running with Docker
-
-1. Clone the repository.
-2. Run the following command in the project root:
-
 ```bash
-docker-compose up --build
+docker-compose build
+docker-compose up
 ```
 
-3. Access the editor at `http://localhost:8080`.
-
-### Building and Running Locally
-
-1. Package the application:
-
-```bash
-mvn clean package
-```
-
-2. Run the generated JAR file:
-
-```bash
-java -jar target/policy-editor-0.0.1-SNAPSHOT.jar
-```
-
-3. Access the editor at `http://localhost:8080`.
-
-## Documentation
-
-Full documentation is available in the `docs/docs` directory or can be viewed via [MkDocs](https://www.mkdocs.org/):
-
-```bash
-pip install -r docs/requirements.txt
-mkdocs serve
-```
+You can now access the editor at `http://localhost:8080`.
 
 ## License
 

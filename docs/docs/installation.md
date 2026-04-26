@@ -34,7 +34,7 @@ mvn clean package
 2. Run the generated JAR file:
 
 ```bash
-java -jar target/policy-editor-0.0.1-SNAPSHOT.jar
+java -jar target/philterd-policy-editor.jar
 ```
 
 3. Access the editor at `http://localhost:8080`.
