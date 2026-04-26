@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Philterd Policy Editor</title>
+    <title>Philterd Redaction Policy Editor</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
@@ -131,15 +131,21 @@
             </div>
         </div>
 
-        <div class="mt-5 pt-4 border-top">
-            <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
-            <button type="button" class="btn btn-outline-info ms-2" onclick="copyToClipboard()">Copy to Clipboard</button>
-            <button type="button" class="btn btn-outline-success ms-2" onclick="downloadPolicy()">Download Policy</button>
+        <div id="results-section" class="d-none">
+            <div class="mt-5 pt-4 border-top">
+                <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
+                <button type="button" class="btn btn-outline-info ms-2" onclick="copyToClipboard()">Copy to Clipboard</button>
+                <button type="button" class="btn btn-outline-success ms-2" onclick="downloadPolicy()">Download Policy</button>
+            </div>
+
+            <hr>
+            <h3>Generated JSON Policy</h3>
+            <pre id="policy-output" class="bg-light p-3 border"></pre>
         </div>
 
-        <hr>
-        <h3>Generated JSON Policy</h3>
-        <pre id="policy-output" class="bg-light p-3 border"></pre>
+        <div id="generate-button-container" class="mt-5 pt-4 border-top">
+            <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
+        </div>
 
         <footer class="mt-5 py-3 border-top text-center text-muted">
             <p>&copy; 2026 <a href="https://www.philterd.ai" target="_blank" class="text-decoration-none">Philterd</a>. Distributed under the Apache License 2.0.</p>
@@ -595,6 +601,8 @@
 
             const result = await response.text();
             document.getElementById('policy-output').textContent = result;
+            document.getElementById('results-section').classList.remove('d-none');
+            document.getElementById('generate-button-container').classList.add('d-none');
         }
 
         function copyToClipboard() {
@@ -807,6 +815,8 @@
             }
 
             updateTypeSelects();
+            document.getElementById('results-section').classList.remove('d-none');
+            document.getElementById('generate-button-container').classList.add('d-none');
         }
 
         function resetEditor() {
@@ -838,6 +848,8 @@
 
                 // Clear Output
                 document.getElementById('policy-output').textContent = '';
+                document.getElementById('results-section').classList.add('d-none');
+                document.getElementById('generate-button-container').classList.remove('d-none');
 
                 // Add one initial row
                 addFilterRow();
