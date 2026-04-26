@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Philterd Policy Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { padding: 20px; }
+        .filter-row { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Philterd Redaction Policy Editor</h1>
+        <p>Generates redaction policies for Phileas and Philter.</p>
+        <hr>
+
+        <div class="mb-4">
+            <button type="button" class="btn btn-outline-warning" onclick="document.getElementById('policyFile').click()">Upload Policy</button>
+            <button type="button" class="btn btn-outline-danger ms-2" onclick="resetEditor()">Reset Editor</button>
+            <input type="file" id="policyFile" class="d-none" accept=".json" onchange="handleFileUpload(event)">
+        </div>
+        
+        <div class="mb-3">
+            <label for="policyName" class="form-label">Policy Name</label>
+            <input type="text" class="form-control" id="policyName" value="default">
+        </div>
+
+        <h3>PII Filters</h3>
+        <div id="filters-container">
+            <!-- Filter rows will be added here -->
+        </div>
+        
+        <button type="button" class="btn btn-secondary mt-3" onclick="addFilterRow()">Add Filter</button>
+        
+        <hr>
+        <div class="mt-4">
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="false" aria-controls="advancedOptions">
+                Advanced Options
+            </button>
+        </div>
+
+        <div class="collapse mt-3" id="advancedOptions">
+            <div class="card card-body">
+                <h3>Post Filters</h3>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="removeTrailingPeriods">
+                    <label class="form-check-label" for="removeTrailingPeriods">
+                        Remove Trailing Periods
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="removeTrailingSpaces">
+                    <label class="form-check-label" for="removeTrailingSpaces">
+                        Remove Trailing Spaces
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="removeTrailingNewLines">
+                    <label class="form-check-label" for="removeTrailingNewLines">
+                        Remove Trailing New Lines
+                    </label>
+                </div>
+
+                <h3 class="mt-4">PDF Settings</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="pdfRedactionColor" class="form-label">Redaction Color</label>
+                        <input type="text" class="form-control" id="pdfRedactionColor" value="black">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="pdfReplacementFont" class="form-label">Replacement Font</label>
+                        <input type="text" class="form-control" id="pdfReplacementFont" value="Helvetica">
+                    </div>
+                    <div class="col-md-4 mb-3 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pdfShowReplacement">
+                            <label class="form-check-label" for="pdfShowReplacement">
+                                Show Replacement
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="pdfScale" class="form-label">Scale</label>
+                        <input type="number" step="0.1" class="form-control" id="pdfScale" value="1.0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="pdfDpi" class="form-label">DPI</label>
+                        <input type="number" class="form-control" id="pdfDpi" value="150">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="pdfCompressionQuality" class="form-label">Compression Quality (0-1)</label>
+                        <input type="number" step="0.1" min="0" max="1" class="form-control" id="pdfCompressionQuality" value="1.0">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pdfPreserveUnredactedPages">
+                            <label class="form-check-label" for="pdfPreserveUnredactedPages">
+                                Preserve Unredacted Pages
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="mt-4">Splitting Settings</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="splittingEnabled">
+                            <label class="form-check-label" for="splittingEnabled">
+                                Enabled
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="splittingMethod" class="form-label">Method</label>
+                        <select class="form-select" id="splittingMethod">
+                            <option value="newline" selected>Newline</option>
+                            <option value="sentence">Sentence</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="splittingThreshold" class="form-label">Threshold</label>
+                        <input type="number" class="form-control" id="splittingThreshold" value="1000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-top">
+            <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
+            <button type="button" class="btn btn-outline-info ms-2" onclick="copyToClipboard()">Copy to Clipboard</button>
+            <button type="button" class="btn btn-outline-success ms-2" onclick="downloadPolicy()">Download Policy</button>
+        </div>
+
+        <hr>
+        <h3>Generated JSON Policy</h3>
+        <pre id="policy-output" class="bg-light p-3 border"></pre>
+
+        <footer class="mt-5 py-3 border-top text-center text-muted">
+            <p>&copy; 2026 <a href="https://www.philterd.ai" target="_blank" class="text-decoration-none">Philterd</a>. Distributed under the Apache License 2.0.</p>
+        </footer>
+    </div>
+
+    <script th:inline="javascript">
+        const piiTypes = /*[[${piiTypes}]]*/ [];
+        const strategies = /*[[${strategies}]]*/ [];
+
+        function addFilterRow() {
+            const container = document.getElementById('filters-container');
+            const row = document.createElement('div');
+            row.className = 'filter-row border p-3 mb-3';
+            
+            const selectedTypes = Array.from(document.querySelectorAll('.filter-type')).map(s => s.value);
+            const availableTypes = piiTypes.filter(t => !selectedTypes.includes(t));
+            
+            if (availableTypes.length === 0) {
+                alert('All PII filters have already been added.');
+                return;
+            }
+
+            let typeOptions = piiTypes.map(t => `<option value="${t}" ${selectedTypes.includes(t) ? 'disabled' : ''}>${t}</option>`).join('');
+            
+            row.innerHTML = `
+                <div class="row">
+                    <div class="col-md-10">
+                        <label class="form-label">PII Type</label>
+                        <select class="form-select filter-type" onchange="onTypeChange(this)">
+                            ${typeOptions}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger w-100" onclick="removeFilterRow(this)">Remove Filter</button>
+                    </div>
+                </div>
+
+                <div class="strategies-container mt-3 ms-4 border-start ps-3">
+                    <h5>Strategies</h5>
+                    <div class="strategies-list">
+                        <!-- Strategy rows will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addStrategyRow(this)">Add Strategy</button>
+                </div>
+
+                <div class="row mt-3 zip-code-options d-none">
+                    <div class="col-md-3">
+                        <label class="form-label">Truncate Digits</label>
+                        <input type="number" class="form-control zip-truncate" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Leave Characters</label>
+                        <input type="number" class="form-control zip-leave" value="0">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input zip-require-delimiter" type="checkbox">
+                            <label class="form-check-label">Require Delimiter</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input zip-validate" type="checkbox">
+                            <label class="form-check-label">Validate</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Dynamic Filter Options -->
+                <div class="row mt-2 dynamic-options d-none">
+                    <div class="col-md-4">
+                        <label class="form-label">Sensitivity</label>
+                        <select class="form-select sensitivity-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input capitalized-check" type="checkbox">
+                            <label class="form-check-label">Capitalized</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fuzzy-check" type="checkbox">
+                            <label class="form-check-label">Fuzzy</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- EmailAddress Options -->
+                <div class="row mt-2 email-options d-none">
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input strict-check" type="checkbox">
+                            <label class="form-check-label">Only Strict Matches</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input valid-tld-check" type="checkbox">
+                            <label class="form-check-label">Only Valid TLDs</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- CreditCard Options -->
+                <div class="row mt-2 credit-card-options d-none">
+                    <div class="col-md-12 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input valid-cc-check" type="checkbox">
+                            <label class="form-check-label">Only Valid CC Numbers</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input ignore-unix-check" type="checkbox">
+                            <label class="form-check-label">Ignore Unix Timestamps</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input word-boundaries-check" type="checkbox">
+                            <label class="form-check-label">Only Word Boundaries</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Date Options -->
+                <div class="row mt-2 date-options d-none">
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input valid-dates-check" type="checkbox">
+                            <label class="form-check-label">Only Valid Dates</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- IbanCode Options -->
+                <div class="row mt-2 iban-options d-none">
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input valid-iban-check" type="checkbox">
+                            <label class="form-check-label">Only Valid IBANs</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input iban-allow-spaces-check" type="checkbox">
+                            <label class="form-check-label">Allow Spaces</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- TrackingNumber Options -->
+                <div class="row mt-2 tracking-options d-none">
+                    <div class="col-md-12 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input ups-check" type="checkbox" checked>
+                            <label class="form-check-label">UPS</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input fedex-check" type="checkbox" checked>
+                            <label class="form-check-label">FedEx</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input usps-check" type="checkbox" checked>
+                            <label class="form-check-label">USPS</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input tracking-allow-spaces-check" type="checkbox">
+                            <label class="form-check-label">Allow Spaces</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- NER / PhEye Options -->
+                <div class="row mt-2 ner-options d-none">
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input remove-punctuation-check" type="checkbox">
+                            <label class="form-check-label">Remove Punctuation</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- PhEye Specific Options -->
+                <div class="row mt-2 pheye-config-options d-none border p-2 bg-light">
+                    <h6>PhEye Configuration</h6>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Endpoint</label>
+                        <input type="text" class="form-control pheye-endpoint" placeholder="http://localhost:8080">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Bearer Token</label>
+                        <input type="text" class="form-control pheye-token">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Timeout</label>
+                        <input type="number" class="form-control pheye-timeout" value="5000">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Max Idle Connections</label>
+                        <input type="number" class="form-control pheye-max-idle" value="20">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Labels (comma separated)</label>
+                        <input type="text" class="form-control pheye-labels" placeholder="PER,LOC,ORG">
+                    </div>
+                </div>
+
+                <!-- Dictionary Options -->
+                <div class="row mt-2 dictionary-options d-none">
+                    <div class="col-md-4">
+                        <label class="form-label">Classification</label>
+                        <input type="text" class="form-control dictionary-classification" value="dictionary">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sensitivity</label>
+                        <select class="form-select dictionary-sensitivity">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center mt-4">
+                        <div class="form-check me-3">
+                            <input class="form-check-input dictionary-capitalized" type="checkbox">
+                            <label class="form-check-label">Capitalized</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dictionary-fuzzy" type="checkbox">
+                            <label class="form-check-label">Fuzzy</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+
+            // Select the first available type
+            row.querySelector('.filter-type').value = availableTypes[0];
+            
+            // Add initial strategy row
+            addStrategyRow(row.querySelector('.btn-outline-secondary'));
+
+            // Update all selects to reflect new disabled states
+            updateTypeSelects();
+            
+            // Check initial state
+            onTypeChange(row.querySelector('.filter-type'));
+        }
+
+        function addStrategyRow(button) {
+            const container = button.closest('.strategies-container').querySelector('.strategies-list');
+            const row = document.createElement('div');
+            row.className = 'strategy-row border-bottom pb-2 mb-2';
+            
+            const piiType = button.closest('.filter-row').querySelector('.filter-type').value;
+            let currentStrategies = [...strategies];
+            if (piiType === 'Zip Code') {
+                currentStrategies = [...strategies, 'TRUNCATE', 'POPULATION', 'ZERO_LEADING'];
+            }
+
+            let strategyOptions = currentStrategies.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            row.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Strategy</label>
+                        <select class="form-select filter-strategy">
+                            ${strategyOptions}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Condition (Optional)</label>
+                        <input type="text" class="form-control filter-condition" placeholder="e.g., confidence > 0.8">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeStrategyRow(this)">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeStrategyRow(button) {
+            const list = button.closest('.strategies-list');
+            if (list.querySelectorAll('.strategy-row').length > 1) {
+                button.closest('.strategy-row').remove();
+            } else {
+                alert('Each filter must have at least one strategy.');
+            }
+        }
+
+        function removeFilterRow(button) {
+            button.closest('.filter-row').remove();
+            updateTypeSelects();
+        }
+
+        function updateTypeSelects() {
+            const selects = document.querySelectorAll('.filter-type');
+            const selectedTypes = Array.from(selects).map(s => s.value);
+
+            selects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(option => {
+                    // Allow PhEye and Dictionary to be selected multiple times
+                    if (option.value !== 'PhEye' && option.value !== 'Dictionary' && option.value !== currentValue) {
+                        option.disabled = selectedTypes.includes(option.value);
+                    } else {
+                        option.disabled = false;
+                    }
+                });
+            });
+        }
+
+        function onTypeChange(selectElement) {
+            updateTypeSelects();
+            toggleFilterOptions(selectElement);
+            updateStrategyOptions(selectElement);
+        }
+
+        function updateStrategyOptions(selectElement) {
+            const row = selectElement.closest('.filter-row');
+            const strategySelects = row.querySelectorAll('.filter-strategy');
+            
+            let currentStrategies = [...strategies];
+            if (selectElement.value === 'Zip Code') {
+                currentStrategies = [...strategies, 'TRUNCATE', 'POPULATION', 'ZERO_LEADING'];
+            }
+            
+            strategySelects.forEach(strategySelect => {
+                const currentStrategy = strategySelect.value;
+                strategySelect.innerHTML = currentStrategies.map(s => 
+                    `<option value="${s}" ${s === currentStrategy ? 'selected' : ''}>${s}</option>`
+                ).join('');
+            });
+        }
+
+        function toggleFilterOptions(selectElement) {
+            const row = selectElement.closest('.filter-row');
+            const type = selectElement.value;
+            
+            // Hide all first
+            row.querySelectorAll('.zip-code-options, .dynamic-options, .email-options, .credit-card-options, .date-options, .iban-options, .tracking-options, .ner-options, .pheye-config-options, .dictionary-options')
+               .forEach(el => el.classList.add('d-none'));
+
+            if (type === 'Zip Code') {
+                row.querySelector('.zip-code-options').classList.remove('d-none');
+            } else if (['City', 'County', 'First Name', 'Hospital', 'State', 'Surname'].includes(type)) {
+                row.querySelector('.dynamic-options').classList.remove('d-none');
+            } else if (type === 'Email Address') {
+                row.querySelector('.email-options').classList.remove('d-none');
+            } else if (type === 'Credit Card') {
+                row.querySelector('.credit-card-options').classList.remove('d-none');
+            } else if (type === 'Date') {
+                row.querySelector('.date-options').classList.remove('d-none');
+            } else if (type === 'IBAN Code') {
+                row.querySelector('.iban-options').classList.remove('d-none');
+            } else if (type === 'Tracking Number') {
+                row.querySelector('.tracking-options').classList.remove('d-none');
+            } else if (type === 'Dictionary') {
+                row.querySelector('.dictionary-options').classList.remove('d-none');
+            } else if (type === 'PhEye') {
+                row.querySelector('.ner-options').classList.remove('d-none');
+                row.querySelector('.pheye-config-options').classList.remove('d-none');
+            }
+        }
+
+        async function generatePolicy() {
+            const name = document.getElementById('policyName').value;
+            const filterRows = document.querySelectorAll('.filter-row');
+            const filters = [];
+            
+            filterRows.forEach(row => {
+                const type = row.querySelector('.filter-type').value;
+                const strategies = [];
+                
+                row.querySelectorAll('.strategy-row').forEach(sRow => {
+                    const strategy = sRow.querySelector('.filter-strategy').value;
+                    const condition = sRow.querySelector('.filter-condition').value;
+                    
+                    const s = { strategy, condition };
+                    
+                    if (type === 'Zip Code') {
+                        s.truncateDigits = row.querySelector('.zip-truncate').value;
+                        s.truncateLeaveCharacters = row.querySelector('.zip-leave').value;
+                    }
+                    
+                    strategies.push(s);
+                });
+                
+                const filter = { type, strategies };
+                
+                if (type === 'Zip Code') {
+                    filter.requireDelimiter = row.querySelector('.zip-require-delimiter').checked;
+                    filter.validate = row.querySelector('.zip-validate').checked;
+                } else if (['City', 'County', 'First Name', 'Hospital', 'State', 'Surname'].includes(type)) {
+                    filter.sensitivity = row.querySelector('.sensitivity-select').value;
+                    filter.capitalized = row.querySelector('.capitalized-check').checked;
+                    filter.fuzzy = row.querySelector('.fuzzy-check').checked;
+                } else if (type === 'Email Address') {
+                    filter.onlyStrictMatches = row.querySelector('.strict-check').checked;
+                    filter.onlyValidTLDs = row.querySelector('.valid-tld-check').checked;
+                } else if (type === 'Credit Card') {
+                    filter.onlyValidCreditCardNumbers = row.querySelector('.valid-cc-check').checked;
+                    filter.ignoreWhenInUnixTimestamp = row.querySelector('.ignore-unix-check').checked;
+                    filter.onlyWordBoundaries = row.querySelector('.word-boundaries-check').checked;
+                } else if (type === 'Date') {
+                    filter.onlyValidDates = row.querySelector('.valid-dates-check').checked;
+                } else if (type === 'IBAN Code') {
+                    filter.onlyValidIBANCodes = row.querySelector('.valid-iban-check').checked;
+                    filter.allowSpaces = row.querySelector('.iban-allow-spaces-check').checked;
+                } else if (type === 'Tracking Number') {
+                    filter.ups = row.querySelector('.ups-check').checked;
+                    filter.fedex = row.querySelector('.fedex-check').checked;
+                    filter.usps = row.querySelector('.usps-check').checked;
+                    filter.allowSpaces = row.querySelector('.tracking-allow-spaces-check').checked;
+                } else if (type === 'PhEye') {
+                    filter.removePunctuation = row.querySelector('.remove-punctuation-check').checked;
+                    filter.endpoint = row.querySelector('.pheye-endpoint').value;
+                    filter.bearerToken = row.querySelector('.pheye-token').value;
+                    filter.timeout = parseInt(row.querySelector('.pheye-timeout').value);
+                    filter.maxIdleConnections = parseInt(row.querySelector('.pheye-max-idle').value);
+                    const labelsStr = row.querySelector('.pheye-labels').value;
+                    if (labelsStr) {
+                        filter.labels = labelsStr.split(',').map(l => l.trim());
+                    }
+                } else if (type === 'Dictionary') {
+                    filter.classification = row.querySelector('.dictionary-classification').value;
+                    filter.sensitivity = row.querySelector('.dictionary-sensitivity').value;
+                    filter.capitalized = row.querySelector('.dictionary-capitalized').checked;
+                    filter.fuzzy = row.querySelector('.dictionary-fuzzy').checked;
+                }
+                
+                filters.push(filter);
+            });
+
+            const postFilters = {
+                removeTrailingPeriods: document.getElementById('removeTrailingPeriods').checked,
+                removeTrailingSpaces: document.getElementById('removeTrailingSpaces').checked,
+                removeTrailingNewLines: document.getElementById('removeTrailingNewLines').checked
+            };
+
+            const pdf = {
+                redactionColor: document.getElementById('pdfRedactionColor').value,
+                replacementFont: document.getElementById('pdfReplacementFont').value,
+                showReplacement: document.getElementById('pdfShowReplacement').checked,
+                scale: parseFloat(document.getElementById('pdfScale').value),
+                dpi: parseInt(document.getElementById('pdfDpi').value),
+                compressionQuality: parseFloat(document.getElementById('pdfCompressionQuality').value),
+                preserveUnredactedPages: document.getElementById('pdfPreserveUnredactedPages').checked
+            };
+
+            const splitting = {
+                enabled: document.getElementById('splittingEnabled').checked,
+                method: document.getElementById('splittingMethod').value,
+                threshold: parseInt(document.getElementById('splittingThreshold').value)
+            };
+
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, filters, postFilters, pdf, splitting })
+            });
+
+            const result = await response.text();
+            document.getElementById('policy-output').textContent = result;
+        }
+
+        function copyToClipboard() {
+            const content = document.getElementById('policy-output').textContent;
+            if (!content) {
+                alert('No policy generated yet!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Policy copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy to clipboard.');
+            });
+        }
+
+        function downloadPolicy() {
+            const content = document.getElementById('policy-output').textContent;
+            if (!content) {
+                alert('No policy generated yet!');
+                return;
+            }
+
+            const policyName = document.getElementById('policyName').value || 'policy';
+            const filename = policyName + '.json';
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const policy = JSON.parse(e.target.result);
+                    populateUI(policy);
+                } catch (err) {
+                    console.error('Failed to parse policy JSON:', err);
+                    alert('Failed to parse policy JSON.');
+                }
+            };
+            reader.readAsText(file);
+            // Reset the input so the same file can be uploaded again if needed
+            event.target.value = '';
+        }
+
+        function populateUI(policy) {
+            if (!policy) return;
+
+            // Set Policy Name
+            document.getElementById('policyName').value = policy.name || 'default';
+
+            // Clear existing filters
+            document.getElementById('filters-container').innerHTML = '';
+
+            // Map identifiers to UI filters
+            if (policy.identifiers) {
+                const idents = policy.identifiers;
+                
+                // Helper to add a filter row and return it
+                const addRow = (type) => {
+                    addFilterRow();
+                    const rows = document.querySelectorAll('.filter-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('.filter-type').value = type;
+                    onTypeChange(lastRow.querySelector('.filter-type'));
+                    return lastRow;
+                };
+
+                const setStrategies = (row, phileasStrategies) => {
+                    if (!phileasStrategies || phileasStrategies.length === 0) return;
+                    
+                    const strategiesList = row.querySelector('.strategies-list');
+                    strategiesList.innerHTML = ''; // Clear initial strategy row
+                    
+                    phileasStrategies.forEach(s => {
+                        addStrategyRow(row.querySelector('.btn-outline-secondary'));
+                        const sRows = strategiesList.querySelectorAll('.strategy-row');
+                        const lastSRow = sRows[sRows.length - 1];
+                        lastSRow.querySelector('.filter-strategy').value = s.strategy;
+                        lastSRow.querySelector('.filter-condition').value = s.condition || '';
+                        
+                        // Zip code strategy params
+                        if (row.querySelector('.filter-type').value === 'Zip Code') {
+                            if (s.truncateDigits !== undefined) row.querySelector('.zip-truncate').value = s.truncateDigits;
+                            if (s.truncateLeaveCharacters !== undefined) row.querySelector('.zip-leave').value = s.truncateLeaveCharacters;
+                        }
+                    });
+                };
+
+                // Map each Phileas filter type to our UI PII Type name
+                const filterMapping = {
+                    'age': 'Age', 'bitcoinAddress': 'Bitcoin Address', 'creditCard': 'Credit Card',
+                    'currency': 'Currency', 'date': 'Date', 'driversLicense': 'Drivers License',
+                    'emailAddress': 'Email Address', 'ibanCode': 'IBAN Code', 'ipAddress': 'IP Address',
+                    'macAddress': 'MAC Address', 'passportNumber': 'Passport Number',
+                    'phoneNumber': 'Phone Number', 'phoneNumberExtension': 'Phone Number Extension',
+                    'ssn': 'SSN', 'stateAbbreviation': 'State Abbreviation', 'streetAddress': 'Street Address',
+                    'trackingNumber': 'Tracking Number', 'vin': 'VIN', 'city': 'City', 'county': 'County',
+                    'firstName': 'First Name', 'hospital': 'Hospital', 'state': 'State', 'surname': 'Surname',
+                    'physicianName': 'Physician Name', 'bankRoutingNumber': 'Bank Routing Number'
+                };
+
+                for (let key in filterMapping) {
+                    if (idents[key]) {
+                        const row = addRow(filterMapping[key]);
+                        setStrategies(row, idents[key][key + 'FilterStrategies']);
+                        
+                        // Filter specific options
+                        if (key === 'emailAddress') {
+                            row.querySelector('.strict-check').checked = !!idents[key].onlyStrictMatches;
+                            row.querySelector('.valid-tld-check').checked = !!idents[key].onlyValidTLDs;
+                        } else if (key === 'creditCard') {
+                            row.querySelector('.valid-cc-check').checked = !!idents[key].onlyValidCreditCardNumbers;
+                            row.querySelector('.ignore-unix-check').checked = !!idents[key].ignoreWhenInUnixTimestamp;
+                            row.querySelector('.word-boundaries-check').checked = !!idents[key].onlyWordBoundaries;
+                        } else if (key === 'date') {
+                            row.querySelector('.valid-dates-check').checked = !!idents[key].onlyValidDates;
+                        } else if (key === 'ibanCode') {
+                            row.querySelector('.valid-iban-check').checked = !!idents[key].onlyValidIBANCodes;
+                            row.querySelector('.iban-allow-spaces-check').checked = !!idents[key].allowSpaces;
+                        } else if (key === 'trackingNumber') {
+                            row.querySelector('.ups-check').checked = !!idents[key].ups;
+                            row.querySelector('.fedex-check').checked = !!idents[key].fedex;
+                            row.querySelector('.usps-check').checked = !!idents[key].usps;
+                            row.querySelector('.tracking-allow-spaces-check').checked = !!idents[key].allowSpaces;
+                        } else if (['city', 'county', 'firstName', 'hospital', 'state', 'surname'].includes(key)) {
+                            row.querySelector('.sensitivity-select').value = idents[key].sensitivity || 'medium';
+                            row.querySelector('.capitalized-check').checked = !!idents[key].capitalized;
+                            row.querySelector('.fuzzy-check').checked = !!idents[key].fuzzy;
+                        }
+                    }
+                }
+
+                // Zip Code
+                if (idents.zipCode) {
+                    const row = addRow('Zip Code');
+                    setStrategies(row, idents.zipCode.zipCodeFilterStrategies);
+                    row.querySelector('.zip-require-delimiter').checked = !!idents.zipCode.requireDelimiter;
+                    row.querySelector('.zip-validate').checked = !!idents.zipCode.validate;
+                }
+
+                // Custom Dictionaries
+                if (idents.customDictionaries) {
+                    idents.customDictionaries.forEach(dict => {
+                        const row = addRow('Dictionary');
+                        setStrategies(row, dict.customDictionaryFilterStrategies);
+                        row.querySelector('.dictionary-classification').value = dict.classification || 'dictionary';
+                        row.querySelector('.dictionary-sensitivity').value = dict.sensitivity || 'medium';
+                        row.querySelector('.dictionary-capitalized').checked = !!dict.capitalized;
+                        row.querySelector('.dictionary-fuzzy').checked = !!dict.fuzzy;
+                    });
+                }
+            }
+
+            // PhEye
+            if (policy.pheyes) {
+                policy.pheyes.forEach(pheye => {
+                    const row = addRow('PhEye');
+                    setStrategies(row, pheye.phEyeFilterStrategies);
+                    row.querySelector('.remove-punctuation-check').checked = !!pheye.removePunctuation;
+                    const config = pheye.phEyeConfiguration || {};
+                    row.querySelector('.pheye-endpoint').value = config.endpoint || '';
+                    row.querySelector('.pheye-token').value = config.token || '';
+                    row.querySelector('.pheye-timeout').value = config.timeout || 5000;
+                    row.querySelector('.pheye-max-idle').value = config.maxIdleConnections || 20;
+                    if (config.labels) {
+                        row.querySelector('.pheye-labels').value = config.labels.join(', ');
+                    }
+                });
+            }
+
+            // Post Filters
+            if (policy.config && policy.config.postFilters) {
+                const pf = policy.config.postFilters;
+                document.getElementById('removeTrailingPeriods').checked = !!pf.removeTrailingPeriods;
+                document.getElementById('removeTrailingSpaces').checked = !!pf.removeTrailingSpaces;
+                document.getElementById('removeTrailingNewLines').checked = !!pf.removeTrailingNewLines;
+            }
+
+            // PDF
+            if (policy.config && policy.config.pdf) {
+                const pdf = policy.config.pdf;
+                document.getElementById('pdfRedactionColor').value = pdf.redactionColor || 'black';
+                document.getElementById('pdfReplacementFont').value = pdf.replacementFont || 'Helvetica';
+                document.getElementById('pdfShowReplacement').checked = !!pdf.showReplacement;
+                document.getElementById('pdfScale').value = pdf.scale || 1.0;
+                document.getElementById('pdfDpi').value = pdf.dpi || 150;
+                document.getElementById('pdfCompressionQuality').value = pdf.compressionQuality || 1.0;
+                document.getElementById('pdfPreserveUnredactedPages').checked = !!pdf.preserveUnredactedPages;
+            }
+
+            // Splitting
+            if (policy.config && policy.config.splitting) {
+                const split = policy.config.splitting;
+                document.getElementById('splittingEnabled').checked = !!split.enabled;
+                document.getElementById('splittingMethod').value = split.method || 'newline';
+                document.getElementById('splittingThreshold').value = split.threshold || 1000;
+            }
+
+            updateTypeSelects();
+        }
+
+        function resetEditor() {
+            if (confirm('Are you sure you want to reset the editor? All current changes will be lost.')) {
+                // Reset Policy Name
+                document.getElementById('policyName').value = 'default';
+
+                // Clear Filters
+                document.getElementById('filters-container').innerHTML = '';
+
+                // Reset Post Filters
+                document.getElementById('removeTrailingPeriods').checked = false;
+                document.getElementById('removeTrailingSpaces').checked = false;
+                document.getElementById('removeTrailingNewLines').checked = false;
+
+                // Reset PDF Settings
+                document.getElementById('pdfRedactionColor').value = 'black';
+                document.getElementById('pdfReplacementFont').value = 'Helvetica';
+                document.getElementById('pdfShowReplacement').checked = false;
+                document.getElementById('pdfScale').value = 1.0;
+                document.getElementById('pdfDpi').value = 150;
+                document.getElementById('pdfCompressionQuality').value = 1.0;
+                document.getElementById('pdfPreserveUnredactedPages').checked = false;
+
+                // Reset Splitting Settings
+                document.getElementById('splittingEnabled').checked = false;
+                document.getElementById('splittingMethod').value = 'newline';
+                document.getElementById('splittingThreshold').value = 1000;
+
+                // Clear Output
+                document.getElementById('policy-output').textContent = '';
+
+                // Add one initial row
+                addFilterRow();
+                
+                // Update selects (though addFilterRow calls it, it's good for clarity)
+                updateTypeSelects();
+            }
+        }
+
+        // Add one initial row
+        addFilterRow();
+    </script>
+</body>
+</html>
