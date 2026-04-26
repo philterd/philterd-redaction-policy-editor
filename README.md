@@ -4,6 +4,8 @@ The Philterd Policy Editor provides a user-friendly web interface for building a
 
 Documentation is available at https://philterd.github.io/philterd-redaction-policy-editor/
 
+![Philterd Policy Editor](docs/docs/screenshot.png)
+
 ## Features
 
 - **Dynamic Filter Selection**: Choose from over 30 PII/PHI filter types.
