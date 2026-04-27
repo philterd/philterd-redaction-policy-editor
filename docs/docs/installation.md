@@ -10,16 +10,24 @@ The Philterd Policy Editor can be run using Docker or built locally using Maven.
 
 ## Running with Docker
 
-The easiest way to get started is using Docker Compose:
-
-1. Clone the repository.
-2. Run the following command in the project root:
+The easiest way to get started is to pull the image from DockerHub:
 
 ```bash
-docker-compose up --build
+docker pull philterd/philterd-redaction-policy-editor:latest
+docker run -p 8080:8080 philterd/philterd-redaction-policy-editor:latest
 ```
 
-3. Access the editor at `http://localhost:8080`.
+### Using Docker Compose
+
+Alternatively, if you have cloned the repository, you can use Docker Compose:
+
+1. Run the following command in the project root:
+
+```bash
+docker-compose up
+```
+
+2. Access the editor at `http://localhost:8080`.
 4. To allow others on your network to access the editor, ensure your firewall allows traffic on port `8080` and use your machine's IP address (e.g., `http://192.168.1.10:8080`).
 
 ## Configuration
@@ -29,7 +37,6 @@ The Philterd Policy Editor can be configured using environment variables:
 | Environment Variable | Description | Default |
 | --- | --- | --- |
 | `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
-| `GOOGLE_ANALYTICS_TRACKING_ID` | The Google Analytics tracking ID. | |
 
 ## Building and Running Locally
 

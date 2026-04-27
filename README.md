@@ -1,6 +1,7 @@
 # Philterd Policy Editor
 
-The Philterd Policy Editor provides a user-friendly web interface for building and managing redaction policies for [Philter](https://www.github.com/philterd/philter) and [Phileas](https://github.com/philterd/phileas).
+The Philterd Policy Editor provides a user-friendly web interface for building and managing redaction policies
+for [Philter](https://www.github.com/philterd/philter) and [Phileas](https://github.com/philterd/phileas).
 
 Documentation is available at https://philterd.github.io/philterd-redaction-policy-editor/
 
@@ -11,53 +12,38 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Dynamic Filter Selection**: Choose from over 30 PII/PHI filter types.
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
-- **Policy Management**: Load presets for common use cases (Legal, Financial), upload existing JSON policies to edit, and download or copy generated policies.
-- **Policy Testing**: Test your policies against sample text directly in the browser and view detailed redaction explanations.
+- **Policy Management**: Load presets for common use cases (Legal, Financial), upload existing JSON policies to edit,
+  and download or copy generated policies.
+- **Policy Testing**: Test your policies against sample text directly in the browser and view detailed redaction
+  explanations.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Configuration
 
 The Philterd Policy Editor can be configured using environment variables:
 
-| Environment Variable | Description | Default |
-| --- | --- | --- |
-| `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
-| `GOOGLE_ANALYTICS_TRACKING_ID` | The Google Analytics tracking ID. | |
+| Environment Variable           | Description                                | Default |
+|--------------------------------|--------------------------------------------|---------|
+| `HIDE_PII_WARNING`             | Set to `1` to hide the PII warning banner. | `0`     |
 
 ## Getting Started
 
 ### Using Docker
+
+You can pull the Docker image directly from DockerHub:
+
+```bash
+docker run -p 8080:8080 philterd/philterd-redaction-policy-editor:latest
+```
+
+Alternatively, you can use `docker-compose`:
 
 ```bash
 docker-compose build
 docker-compose up
 ```
 
-### Using Makefile
-
-The project includes a `Makefile` for common development tasks:
-
-```bash
-# Build the JAR and the Docker image
-make
-
-# Build just the JAR
-make build-jar
-
-# Build just the Docker image
-make build-docker
-
-# Push the Docker image to DockerHub
-make push-docker
-
-# Run tests
-make test
-
-# Clean build artifacts
-make clean
-```
-
-You can now access the editor at `http://localhost:8080`. To access it from other machines on your network, use the host's IP address: `http://<host-ip>:8080`.
+Either way, you can now access the editor at `http://localhost:8080`.
 
 ## License
 

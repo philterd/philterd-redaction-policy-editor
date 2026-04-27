@@ -105,9 +105,6 @@ public class PolicyController {
         final String hidePiiWarning = System.getenv("HIDE_PII_WARNING");
         model.addAttribute("hidePiiWarning", "1".equals(hidePiiWarning));
 
-        final String googleAnalyticsTrackingId = System.getenv("GOOGLE_ANALYTICS_TRACKING_ID");
-        model.addAttribute("googleAnalyticsTrackingId", googleAnalyticsTrackingId);
-
         model.addAttribute("policyRequest", new PolicyRequest());
         model.addAttribute("piiTypes", Arrays.asList(
             "Age", "Bank Routing Number", "Bitcoin Address", "City", "County", "Credit Card", 

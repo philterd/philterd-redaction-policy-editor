@@ -5,18 +5,6 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 
-    <!-- Google Analytics (GA4) -->
-    <th:block th:if="${googleAnalyticsTrackingId}">
-        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${googleAnalyticsTrackingId}"></script>
-        <script th:inline="javascript">
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', /*[[${googleAnalyticsTrackingId}]]*/ 'G-XXXXXXXXXX');
-        </script>
-    </th:block>
-
     <style>
         body { padding: 20px; }
         .filter-row { margin-bottom: 10px; }
