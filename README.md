@@ -11,7 +11,7 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Dynamic Filter Selection**: Choose from over 30 PII/PHI filter types.
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
-- **Policy Management**: Upload existing JSON policies to edit, and download or copy generated policies.
+- **Policy Management**: Load presets for common use cases (Legal, Financial), upload existing JSON policies to edit, and download or copy generated policies.
 - **Policy Testing**: Test your policies against sample text directly in the browser and view detailed redaction explanations.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
@@ -31,7 +31,7 @@ docker-compose build
 docker-compose up
 ```
 
-You can now access the editor at `http://localhost:8080`.
+You can now access the editor at `http://localhost:8080`. To access it from other machines on your network, use the host's IP address: `http://<host-ip>:8080`.
 
 ## License
 

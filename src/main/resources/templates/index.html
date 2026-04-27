@@ -25,13 +25,22 @@
 <body>
     <div class="container">
         <div th:unless="${hidePiiWarning}" class="alert alert-danger mt-3" role="alert">
-            Warning: Do not enter any PII. To hide this warning, set the environment variable HIDE_PII_WARNING to 1.
+            <b>Warning: Do not enter any PII.</b> <a href="https://philterd.github.io/philterd-redaction-policy-editor">Learn how to run this tool in your own secure network.</a>
         </div>
         <h1>Philterd Redaction Policy Editor</h1>
         <p>Generates redaction policies for Phileas and Philter.</p>
         <hr>
 
-        <div class="mb-4">
+        <div class="mb-4 d-flex align-items-center">
+            <div class="dropdown me-2">
+                <button class="btn btn-outline-info dropdown-toggle" type="button" id="loadPresetBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Load Preset
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="loadPresetBtn">
+                    <li><a class="dropdown-item" href="#" onclick="loadPreset('legal')">Legal</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="loadPreset('financial')">Financial</a></li>
+                </ul>
+            </div>
             <button type="button" class="btn btn-outline-warning" onclick="document.getElementById('policyFile').click()">Upload Policy</button>
             <button type="button" class="btn btn-outline-danger ms-2" onclick="resetEditor()">Reset Editor</button>
             <input type="file" id="policyFile" class="d-none" accept=".json" onchange="handleFileUpload(event)">
@@ -172,7 +181,7 @@
             </div>
 
             <hr>
-            <h3>Generated JSON Policy</h3>
+            <h3>Generated Policy</h3>
             <pre id="policy-output" class="bg-light p-3 border"></pre>
         </div>
 
@@ -853,6 +862,57 @@
             } else {
                 explanationSection.classList.add('d-none');
                 showBtn.textContent = 'Show Explanation';
+            }
+        }
+
+        function loadPreset(preset) {
+            let policy;
+            if (preset === 'legal') {
+                policy = {
+                    "name": "legal-preset",
+                    "identifiers": {
+                        "firstName": {
+                            "firstNameFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "surname": {
+                            "surnameFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "city": {
+                            "cityFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "state": {
+                            "stateFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "streetAddress": {
+                            "streetAddressFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "phoneNumber": {
+                            "phoneNumberFilterStrategies": [{"strategy": "REDACT"}]
+                        }
+                    }
+                };
+            } else if (preset === 'financial') {
+                policy = {
+                    "name": "financial-preset",
+                    "identifiers": {
+                        "creditCard": {
+                            "creditCardFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "ibanCode": {
+                            "ibanCodeFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "bankRoutingNumber": {
+                            "bankRoutingNumberFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "bitcoinAddress": {
+                            "bitcoinFilterStrategies": [{"strategy": "REDACT"}]
+                        }
+                    }
+                };
+            }
+
+            if (policy) {
+                populateUI(policy);
             }
         }
 

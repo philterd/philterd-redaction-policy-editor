@@ -47,5 +47,6 @@ Once you have generated a policy, you can test it directly within the editor:
 - **Generate Policy**: Click this to see the JSON representation of your current configuration.
 - **Copy to Clipboard**: Quickly copy the JSON for use in your application.
 - **Download Policy**: Save the policy as a `.json` file.
+- **Load Preset**: Quickly populate the editor with pre-configured filters for specific domains such as **Legal** or **Financial**.
 - **Upload Policy**: Choose an existing Philter or Phileas JSON policy to load it back into the editor for further modification.
 - **Reset Editor**: Clear all fields and start over.

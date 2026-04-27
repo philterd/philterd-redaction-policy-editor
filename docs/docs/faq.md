@@ -4,6 +4,9 @@ This page answers common questions about the Philterd Policy Editor.
 
 ## General Questions
 
+### Can I run Philterd Redaction Policy Editor on my own network?
+Yes. The editor is a self-hosted application that can be run on your local network using Docker or by running the JAR file directly. Once running, it is accessible via the host's IP address on port 8080 (e.g., `http://<host-ip>:8080`). For more details, see the [Installation](installation.md#network-configuration) section.
+
 ### What is the Philterd Policy Editor?
 The Philterd Policy Editor is a web-based tool for creating and managing redaction policies for Philter and Phileas. It provides a user-friendly interface to configure PII filters, redaction strategies, and advanced document processing settings.
 
