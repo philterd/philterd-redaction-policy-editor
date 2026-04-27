@@ -28,7 +28,7 @@
             <b>Warning: Do not enter any PII.</b> <a href="https://philterd.github.io/philterd-redaction-policy-editor">Learn how to run this tool in your own secure network.</a>
         </div>
         <h1>Philterd Redaction Policy Editor</h1>
-        <p>Generates redaction policies for Phileas and Philter.</p>
+        <p>Generates redaction policies for Phileas and Philter. View the <a href="https://philterd.github.io/philterd-redaction-policy-editor/" target="_blank">documentation</a>.</p>
         <hr>
 
         <div class="mb-4 d-flex align-items-center">
@@ -37,13 +37,33 @@
                     Load Preset
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="loadPresetBtn">
-                    <li><a class="dropdown-item" href="#" onclick="loadPreset('legal')">Legal</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="loadPreset('financial')">Financial</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="showPresetDisclaimer('legal')">Legal</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="showPresetDisclaimer('financial')">Financial</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="showPresetDisclaimer('healthcare')">Healthcare</a></li>
                 </ul>
             </div>
             <button type="button" class="btn btn-outline-warning" onclick="document.getElementById('policyFile').click()">Upload Policy</button>
             <button type="button" class="btn btn-outline-danger ms-2" onclick="resetEditor()">Reset Editor</button>
             <input type="file" id="policyFile" class="d-none" accept=".json" onchange="handleFileUpload(event)">
+        </div>
+
+        <!-- Preset Disclaimer Modal -->
+        <div class="modal fade" id="presetDisclaimerModal" tabindex="-1" aria-labelledby="presetDisclaimerModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="presetDisclaimerModalLabel">Preset Disclaimer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Presets are intended to be built upon and customized for your use. They are not intended to be comprehensive policies for any industry. Review them carefully and thoroughly before use.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="confirmLoadPreset()">I Acknowledge</button>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="mb-3">
@@ -218,6 +238,23 @@
     <script th:inline="javascript">
         const piiTypes = /*[[${piiTypes}]]*/ [];
         const strategies = /*[[${strategies}]]*/ [];
+        let pendingPreset = null;
+
+        function showPresetDisclaimer(preset) {
+            pendingPreset = preset;
+            const modal = new bootstrap.Modal(document.getElementById('presetDisclaimerModal'));
+            modal.show();
+        }
+
+        function confirmLoadPreset() {
+            const modalElement = document.getElementById('presetDisclaimerModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+            if (pendingPreset) {
+                loadPreset(pendingPreset);
+                pendingPreset = null;
+            }
+        }
 
         function addFilterRow() {
             const container = document.getElementById('filters-container');
@@ -897,6 +934,39 @@
                         },
                         "bitcoinAddress": {
                             "bitcoinFilterStrategies": [{"strategy": "REDACT"}]
+                        }
+                    }
+                };
+            } else if (preset === 'healthcare') {
+                policy = {
+                    "name": "healthcare-preset",
+                    "identifiers": {
+                        "firstName": {
+                            "firstNameFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "surname": {
+                            "surnameFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "date": {
+                            "dateFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "ssn": {
+                            "ssnFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "phoneNumber": {
+                            "phoneNumberFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "zipCode": {
+                            "zipCodeFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "emailAddress": {
+                            "emailAddressFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "physicianName": {
+                            "physicianNameFilterStrategies": [{"strategy": "REDACT"}]
+                        },
+                        "hospital": {
+                            "hospitalFilterStrategies": [{"strategy": "REDACT"}]
                         }
                     }
                 };

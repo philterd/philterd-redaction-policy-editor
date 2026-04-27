@@ -46,6 +46,9 @@ Once you have generated a policy, you can test it directly within the editor:
 - **Generate Policy**: Click this to see the JSON representation of your current configuration.
 - **Copy to Clipboard**: Quickly copy the JSON for use in your application.
 - **Download Policy**: Save the policy as a `.json` file.
-- **Load Preset**: Quickly populate the editor with pre-configured filters for specific domains such as **Legal** or **Financial**.
+- **Load Preset**: Quickly populate the editor with pre-configured filters for specific domains. Presets are intended to be built upon and customized for your use. They are not intended to be comprehensive policies for any industry. Review them carefully and thoroughly before use.
+    - **Legal**: Includes filters for common legal entities like names, cities, states, street addresses, and phone numbers.
+    - **Financial**: Focuses on financial identifiers such as credit card numbers, IBAN codes, bank routing numbers, and bitcoin addresses.
+    - **Healthcare**: Designed for healthcare data, including patient names, dates, SSNs, phone numbers, zip codes, and email addresses.
 - **Upload Policy**: Choose an existing Philter or Phileas JSON policy to load it back into the editor for further modification.
 - **Reset Editor**: Clear all fields and start over.
