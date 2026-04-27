@@ -14,6 +14,14 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Policy Management**: Upload existing JSON policies to edit, and download or copy generated policies.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
+## Configuration
+
+The Philterd Policy Editor can be configured using environment variables:
+
+| Environment Variable | Description | Default |
+| --- | --- | --- |
+| `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
+
 ## Getting Started
 
 ```bash

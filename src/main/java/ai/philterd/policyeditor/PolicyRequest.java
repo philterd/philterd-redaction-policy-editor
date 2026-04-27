@@ -6,6 +6,8 @@ import java.util.List;
 public class PolicyRequest {
     private String name;
     private List<FilterSelection> filters = new ArrayList<>();
+    private List<String> ignored = new ArrayList<>();
+    private List<String> ignoredPatterns = new ArrayList<>();
     private PostFiltersSelection postFilters = new PostFiltersSelection();
     private PdfSelection pdf = new PdfSelection();
     private SplittingSelection splitting = new SplittingSelection();
@@ -24,6 +26,22 @@ public class PolicyRequest {
 
     public void setFilters(List<FilterSelection> filters) {
         this.filters = filters;
+    }
+    
+    public List<String> getIgnored() {
+        return ignored;
+    }
+
+    public void setIgnored(List<String> ignored) {
+        this.ignored = ignored;
+    }
+
+    public List<String> getIgnoredPatterns() {
+        return ignoredPatterns;
+    }
+
+    public void setIgnoredPatterns(List<String> ignoredPatterns) {
+        this.ignoredPatterns = ignoredPatterns;
     }
 
     public PostFiltersSelection getPostFilters() {
@@ -159,6 +177,7 @@ public class PolicyRequest {
 
     public static class FilterSelection {
         private String type;
+        private boolean enabled = true;
         private List<StrategySelection> strategies = new ArrayList<>();
         private boolean requireDelimiter;
         private boolean validate;
@@ -201,7 +220,7 @@ public class PolicyRequest {
 
         // Dictionary specific configuration
         private String classification;
-
+        private int windowSize = 5;
 
         public String getType() {
             return type;
@@ -209,6 +228,14 @@ public class PolicyRequest {
 
         public void setType(String type) {
             this.type = type;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
 
         public List<StrategySelection> getStrategies() {
@@ -401,6 +428,14 @@ public class PolicyRequest {
 
         public void setClassification(String classification) {
             this.classification = classification;
+        }
+
+        public int getWindowSize() {
+            return windowSize;
+        }
+
+        public void setWindowSize(int windowSize) {
+            this.windowSize = windowSize;
         }
     }
 }

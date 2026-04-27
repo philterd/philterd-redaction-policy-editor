@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -19,10 +21,28 @@ public class PolicyEditorApplicationTests {
     }
 
     @Test
+    public void shouldGeneratePolicyWithCustomWindowSize() {
+        PolicyRequest request = new PolicyRequest();
+        request.setName("test-window-size");
+        PolicyRequest.FilterSelection selection = new PolicyRequest.FilterSelection();
+        selection.setType("Age");
+        selection.setWindowSize(10);
+        PolicyRequest.StrategySelection strategy = new PolicyRequest.StrategySelection();
+        strategy.setStrategy("REDACT");
+        selection.getStrategies().add(strategy);
+        request.getFilters().add(selection);
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"windowSize\": 10");
+    }
+
+    @Test
     public void shouldReturnIndexPage() {
         ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("Philterd Redaction Policy Editor");
+        assertThat(response.getBody()).contains("Do not enter any PII.");
     }
 
     @Test
@@ -43,6 +63,7 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"REDACT\"");
         assertThat(response.getBody()).contains("ageFilterStrategies");
+        assertThat(response.getBody()).contains("\"windowSize\": 5");
         assertThat(response.getBody()).doesNotContain("anonymizationMethod");
         assertThat(response.getBody()).contains("\"removeTrailingPeriods\": true");
         assertThat(response.getBody()).contains("\"removeTrailingSpaces\": false");
@@ -300,5 +321,51 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("customFilterStrategies");
         assertThat(response.getBody()).contains("\"strategy\": \"REDACT\"");
         assertThat(response.getBody()).contains("\"strategy\": \"MASK\"");
+    }
+    @Test
+    public void shouldGeneratePolicyWithDisabledFilter() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        filterSelection.setEnabled(false);
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("REDACT");
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("test-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"enabled\": false");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithIgnoredTerms() {
+        PolicyRequest request = new PolicyRequest();
+        request.setName("ignored-policy");
+        request.setIgnored(Arrays.asList("term1", "term2"));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"ignored\": [");
+        assertThat(response.getBody()).contains("\"term1\"");
+        assertThat(response.getBody()).contains("\"term2\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithIgnoredPatterns() {
+        PolicyRequest request = new PolicyRequest();
+        request.setName("ignored-patterns-policy");
+        request.setIgnoredPatterns(Arrays.asList("[0-9]{3}", "[A-Z]{2}"));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"ignoredPatterns\": [");
+        assertThat(response.getBody()).contains("\"pattern\": \"[0-9]{3}\"");
+        assertThat(response.getBody()).contains("\"pattern\": \"[A-Z]{2}\"");
     }
 }

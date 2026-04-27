@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Philterd Redaction Policy Editor</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
     <style>
         body { padding: 20px; }
         .filter-row { margin-bottom: 10px; }
@@ -11,6 +11,9 @@
 </head>
 <body>
     <div class="container">
+        <div th:unless="${hidePiiWarning}" class="alert alert-danger mt-3" role="alert">
+            Warning: Do not enter any PII. To hide this warning, set the environment variable HIDE_PII_WARNING to 1.
+        </div>
         <h1>Philterd Redaction Policy Editor</h1>
         <p>Generates redaction policies for Phileas and Philter.</p>
         <hr>
@@ -128,6 +131,22 @@
                         <input type="number" class="form-control" id="splittingThreshold" value="1000">
                     </div>
                 </div>
+
+                <h3 class="mt-4">Ignored Terms</h3>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="ignoredTerms" class="form-label">Enter terms to ignore (one per line)</label>
+                        <textarea class="form-control" id="ignoredTerms" rows="5" placeholder="Enter terms here..."></textarea>
+                    </div>
+                </div>
+
+                <h3 class="mt-4">Ignored Patterns</h3>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="ignoredPatterns" class="form-label">Enter patterns to ignore (one per line)</label>
+                        <textarea class="form-control" id="ignoredPatterns" rows="5" placeholder="e.g., [0-9]{3}"></textarea>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -173,11 +192,21 @@
             
             row.innerHTML = `
                 <div class="row">
-                    <div class="col-md-10">
+                    <div class="col-md-6">
                         <label class="form-label">PII Type</label>
                         <select class="form-select filter-type" onchange="onTypeChange(this)">
                             ${typeOptions}
                         </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Window Size</label>
+                        <input type="number" class="form-control filter-window-size" value="5" min="0">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input class="form-check-input filter-enabled" type="checkbox" checked>
+                            <label class="form-check-label">Enabled</label>
+                        </div>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" class="btn btn-danger w-100" onclick="removeFilterRow(this)">Remove Filter</button>
@@ -507,6 +536,8 @@
             
             filterRows.forEach(row => {
                 const type = row.querySelector('.filter-type').value;
+                const enabled = row.querySelector('.filter-enabled').checked;
+                const windowSize = parseInt(row.querySelector('.filter-window-size').value) || 5;
                 const strategies = [];
                 
                 row.querySelectorAll('.strategy-row').forEach(sRow => {
@@ -523,7 +554,7 @@
                     strategies.push(s);
                 });
                 
-                const filter = { type, strategies };
+                const filter = { type, enabled, windowSize, strategies };
                 
                 if (type === 'Zip Code') {
                     filter.requireDelimiter = row.querySelector('.zip-require-delimiter').checked;
@@ -591,12 +622,18 @@
                 threshold: parseInt(document.getElementById('splittingThreshold').value)
             };
 
+            const ignoredTerms = document.getElementById('ignoredTerms').value;
+            const ignored = ignoredTerms.split('\n').map(t => t.trim()).filter(t => t !== '');
+
+            const ignoredPatternsText = document.getElementById('ignoredPatterns').value;
+            const ignoredPatterns = ignoredPatternsText.split('\n').map(p => p.trim()).filter(p => p !== '');
+
             const response = await fetch('/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name, filters, postFilters, pdf, splitting })
+                body: JSON.stringify({ name, filters, ignored, ignoredPatterns, postFilters, pdf, splitting })
             });
 
             const result = await response.text();
@@ -720,6 +757,8 @@
                 for (let key in filterMapping) {
                     if (idents[key]) {
                         const row = addRow(filterMapping[key]);
+                        if (idents[key].enabled !== undefined) row.querySelector('.filter-enabled').checked = idents[key].enabled;
+                        if (idents[key].windowSize !== undefined) row.querySelector('.filter-window-size').value = idents[key].windowSize;
                         setStrategies(row, idents[key][key + 'FilterStrategies']);
                         
                         // Filter specific options
@@ -814,6 +853,23 @@
                 document.getElementById('splittingThreshold').value = split.threshold || 1000;
             }
 
+            // Ignored
+            if (policy.ignored) {
+                const terms = [];
+                policy.ignored.forEach(i => {
+                    if (i.terms) {
+                        terms.push(...i.terms);
+                    }
+                });
+                document.getElementById('ignoredTerms').value = terms.join('\n');
+            }
+
+            // Ignored Patterns
+            if (policy.ignoredPatterns) {
+                const patterns = policy.ignoredPatterns.map(p => p.pattern);
+                document.getElementById('ignoredPatterns').value = patterns.join('\n');
+            }
+
             updateTypeSelects();
             document.getElementById('results-section').classList.remove('d-none');
             document.getElementById('generate-button-container').classList.add('d-none');
@@ -845,6 +901,12 @@
                 document.getElementById('splittingEnabled').checked = false;
                 document.getElementById('splittingMethod').value = 'newline';
                 document.getElementById('splittingThreshold').value = 1000;
+
+                // Reset Ignored Terms
+                document.getElementById('ignoredTerms').value = '';
+
+                // Reset Ignored Patterns
+                document.getElementById('ignoredPatterns').value = '';
 
                 // Clear Output
                 document.getElementById('policy-output').textContent = '';

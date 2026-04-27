@@ -21,6 +21,14 @@ docker-compose up --build
 
 3. Access the editor at `http://localhost:8080`.
 
+## Configuration
+
+The Philterd Policy Editor can be configured using environment variables:
+
+| Environment Variable | Description | Default |
+| --- | --- | --- |
+| `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
+
 ## Building and Running Locally
 
 To build the project from source:
