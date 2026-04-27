@@ -10,8 +10,8 @@ RUN mvn package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY --from=build /app/target/philterd-policy-editor.jar app.jar
+COPY --from=build /app/target/philterd-policy-editor.jar philterd-policy-editor.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "philterd-policy-editor.jar"]

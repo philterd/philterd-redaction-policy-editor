@@ -11,7 +11,6 @@ This guide describes how to use the Philterd Policy Editor to create and manage 
     - **Mask Character**: If using the `MASK` strategy, you can specify a `maskCharacter` (e.g., `*`).
     - **Mask Length**: If using the `MASK` strategy, you can specify a `maskLength` (e.g., `5`) to force a specific length of the mask.
     - **Replacement Scope**: If using the `RANDOM_REPLACE` strategy, you can specify the `replacementScope` as `CONTEXT` or `DOCUMENT`.
-    - **Anonymization Candidates**: If using the `RANDOM_REPLACE` strategy, you can provide a list of candidates (one per line) that Phileas will choose from to replace the PII.
     - **Truncate Length**: For `Zip Code` filters using the `TRUNCATE` strategy, you can specify the `truncateLength` (1, 2, 3, or 4).
 4. **Conditions**: Optionally add conditions like `confidence > 0.8` to strategies.
 

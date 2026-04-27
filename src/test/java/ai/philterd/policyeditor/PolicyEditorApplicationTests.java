@@ -498,26 +498,6 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("\"replacementScope\": \"DOCUMENT\"");
     }
 
-    @Test
-    public void shouldGeneratePolicyWithAnonymizationCandidates() {
-        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
-        filterSelection.setType("Age");
-        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
-        strategySelection.setStrategy("RANDOM_REPLACE");
-        strategySelection.setAnonymizationCandidates(Arrays.asList("candidate1", "candidate2"));
-        filterSelection.setStrategies(Arrays.asList(strategySelection));
-
-        PolicyRequest request = new PolicyRequest();
-        request.setName("anonymization-candidates-policy");
-        request.setFilters(Arrays.asList(filterSelection));
-
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("\"anonymizationCandidates\": [");
-        assertThat(response.getBody()).contains("\"candidate1\"");
-        assertThat(response.getBody()).contains("\"candidate2\"");
-    }
 
     @Test
     public void shouldTestPolicy() {

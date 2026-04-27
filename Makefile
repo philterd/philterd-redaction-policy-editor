@@ -14,14 +14,18 @@ all: build-jar build-docker
 build-jar:
 	mvn clean package
 
+# Run the app
+run:
+	mvn spring-boot:run
+
 # Build the Docker image
 build-docker:
-	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
+	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest . ;
 
 # Push the Docker image to DockerHub
 push-docker:
-	docker push $(DOCKER_IMAGE):$(VERSION)
-	docker push $(DOCKER_IMAGE):latest
+	docker push $(DOCKER_IMAGE):$(VERSION) ;
+	docker push $(DOCKER_IMAGE):latest ;
 
 # Clean the Maven build artifacts
 clean:

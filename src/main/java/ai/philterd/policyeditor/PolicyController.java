@@ -145,7 +145,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 age.setAgeFilterStrategies(strategies);
@@ -163,7 +162,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 brn.setBankRoutingNumberFilterStrategies(strategies);
@@ -181,7 +179,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ba.setBitcoinFilterStrategies(strategies);
@@ -202,7 +199,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 city.setCityFilterStrategies(strategies);
@@ -223,7 +219,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 county.setCountyFilterStrategies(strategies);
@@ -244,7 +239,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 cc.setCreditCardFilterStrategies(strategies);
@@ -262,7 +256,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 currency.setCurrencyFilterStrategies(strategies);
@@ -281,7 +274,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 date.setDateFilterStrategies(strategies);
@@ -305,7 +297,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 cd.setCustomDictionaryFilterStrategies(strategies);
@@ -323,7 +314,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 dl.setDriversLicenseFilterStrategies(strategies);
@@ -343,7 +333,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 email.setEmailAddressFilterStrategies(strategies);
@@ -364,7 +353,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 fn.setFirstNameFilterStrategies(strategies);
@@ -385,7 +373,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 h.setHospitalFilterStrategies(strategies);
@@ -405,7 +392,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 iban.setIbanCodeFilterStrategies(strategies);
@@ -423,7 +409,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ip.setIpAddressFilterStrategies(strategies);
@@ -441,7 +426,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 mac.setMacAddressFilterStrategies(strategies);
@@ -459,7 +443,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPassportNumberFilterStrategies(strategies);
@@ -489,7 +472,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 phEye.setPhEyeFilterStrategies(strategies);
@@ -507,7 +489,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPhoneNumberFilterStrategies(strategies);
@@ -525,7 +506,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pne.setPhoneNumberExtensionFilterStrategies(strategies);
@@ -543,7 +523,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPhysicianNameFilterStrategies(strategies);
@@ -561,7 +540,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ssn.setSsnFilterStrategies(strategies);
@@ -582,7 +560,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 state.setStateFilterStrategies(strategies);
@@ -600,7 +577,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 sa.setStateAbbreviationsFilterStrategies(strategies);
@@ -618,7 +594,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 sa.setStreetAddressFilterStrategies(strategies);
@@ -639,7 +614,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 surname.setSurnameFilterStrategies(strategies);
@@ -661,7 +635,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 tn.setTrackingNumberFilterStrategies(strategies);
@@ -679,7 +652,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 url.setUrlFilterStrategies(strategies);
@@ -697,7 +669,6 @@ public class PolicyController {
                     strategy.setMaskCharacter(s.getMaskCharacter());
                     if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 vin.setVinFilterStrategies(strategies);
@@ -727,7 +698,6 @@ public class PolicyController {
                         strategy.setTruncateDigits(s.getTruncateLength());
                     }
                     strategy.setReplacementScope(s.getReplacementScope());
-                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
 

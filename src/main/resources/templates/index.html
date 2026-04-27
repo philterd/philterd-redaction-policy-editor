@@ -500,10 +500,6 @@
                             <option value="DOCUMENT">DOCUMENT</option>
                         </select>
                     </div>
-                    <div class="col-md-12 mt-2 anonymization-candidates-container">
-                        <label class="form-label">Anonymization Candidates (One per line)</label>
-                        <textarea class="form-control anonymization-candidates" rows="3" placeholder="Candidate 1\nCandidate 2"></textarea>
-                    </div>
                     <div class="col-md-2 truncate-length-container">
                         <label class="form-label">Truncate Length</label>
                         <select class="form-select truncate-length">
@@ -530,7 +526,6 @@
             const maskContainer = row.querySelector('.mask-character-container');
             const maskLengthContainer = row.querySelector('.mask-length-container');
             const replacementScopeContainer = row.querySelector('.replacement-scope-container');
-            const candidatesContainer = row.querySelector('.anonymization-candidates-container');
             const truncateLengthContainer = row.querySelector('.truncate-length-container');
             
             const piiType = row.closest('.filter-row').querySelector('.filter-type').value;
@@ -551,10 +546,8 @@
 
             if (selectElement.value === 'RANDOM_REPLACE') {
                 replacementScopeContainer.classList.remove('d-none');
-                candidatesContainer.classList.remove('d-none');
             } else {
                 replacementScopeContainer.classList.add('d-none');
-                candidatesContainer.classList.add('d-none');
             }
 
             if (selectElement.value === 'TRUNCATE' && piiType === 'Zip Code') {
@@ -667,11 +660,9 @@
                     const maskCharacter = sRow.querySelector('.mask-character').value;
                     const maskLengthVal = sRow.querySelector('.mask-length').value;
                     const replacementScope = sRow.querySelector('.replacement-scope').value;
-                    const anonymizationCandidatesText = sRow.querySelector('.anonymization-candidates').value;
-                    const anonymizationCandidates = anonymizationCandidatesText.split('\n').map(c => c.trim()).filter(c => c !== '');
                     const truncateLengthVal = sRow.querySelector('.truncate-length').value;
                     
-                    const s = { strategy, condition, redactionFormat, maskCharacter, replacementScope, anonymizationCandidates };
+                    const s = { strategy, condition, redactionFormat, maskCharacter, replacementScope };
                     if (maskLengthVal) s.maskLength = parseInt(maskLengthVal);
                     if (truncateLengthVal && strategy === 'TRUNCATE' && type === 'Zip Code') s.truncateLength = parseInt(truncateLengthVal);
                     

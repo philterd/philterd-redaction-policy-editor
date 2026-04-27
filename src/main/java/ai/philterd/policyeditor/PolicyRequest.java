@@ -162,7 +162,6 @@ public class PolicyRequest {
         private Integer truncateLeaveCharacters;
         private Integer truncateLength;
         private String replacementScope;
-        private List<String> anonymizationCandidates = new ArrayList<>();
 
         public String getStrategy() {
             return strategy;
@@ -234,14 +233,6 @@ public class PolicyRequest {
 
         public void setReplacementScope(String replacementScope) {
             this.replacementScope = replacementScope;
-        }
-
-        public List<String> getAnonymizationCandidates() {
-            return anonymizationCandidates;
-        }
-
-        public void setAnonymizationCandidates(List<String> anonymizationCandidates) {
-            this.anonymizationCandidates = anonymizationCandidates;
         }
     }
 
