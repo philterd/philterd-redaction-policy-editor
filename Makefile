@@ -3,7 +3,7 @@
 # Variables
 APP_NAME = philterd-policy-editor
 DOCKER_IMAGE = philterd/philterd-redaction-policy-editor
-VERSION = 0.0.1-SNAPSHOT
+VERSION := $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null)
 
 .PHONY: all build-jar build-docker push-docker clean test
 

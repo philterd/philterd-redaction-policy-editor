@@ -18,8 +18,9 @@ package ai.philterd.policyeditor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 
@@ -27,9 +28,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PolicyEditorApplicationTests {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
+    
+    @LocalServerPort
+    private int port;
+    
+    private RestTemplate restTemplate = new RestTemplate();
+    
+    private String getUrl(String path) {
+        return "http://localhost:" + port + path;
+    }
 
     @Test
     public void contextLoads() {
@@ -47,15 +54,15 @@ public class PolicyEditorApplicationTests {
         selection.getStrategies().add(strategy);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"windowSize\": 10");
     }
 
     @Test
     public void shouldReturnIndexPage() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/"), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("Philterd Redaction Policy Editor");
         assertThat(response.getBody()).contains("Do not enter any PII.");
     }
@@ -74,8 +81,8 @@ public class PolicyEditorApplicationTests {
         request.getPostFilters().setRemoveTrailingSpaces(false);
         request.getPostFilters().setRemoveTrailingNewLines(true);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"REDACT\"");
         assertThat(response.getBody()).contains("ageFilterStrategies");
         assertThat(response.getBody()).contains("\"windowSize\": 5");
@@ -99,9 +106,9 @@ public class PolicyEditorApplicationTests {
         selection.setValidate(true);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
         System.out.println("[DEBUG_LOG] ZIP JSON: " + response.getBody());
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"TRUNCATE\"");
         assertThat(response.getBody()).contains("zipCodeFilterStrategy");
         assertThat(response.getBody()).contains("\"truncateLeaveCharacters\": 2");
@@ -121,8 +128,8 @@ public class PolicyEditorApplicationTests {
         selection.getStrategies().add(strategy);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"TRUNCATE\"");
         assertThat(response.getBody()).contains("\"truncateLeaveCharacters\": 4");
     }
@@ -165,8 +172,8 @@ public class PolicyEditorApplicationTests {
         tn.setAllowSpaces(true);
         request.getFilters().add(tn);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
 
         // Assertions for First Name
         assertThat(response.getBody()).contains("firstNameFilterStrategies");
@@ -195,8 +202,8 @@ public class PolicyEditorApplicationTests {
         selection.getStrategies().add(strategy);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"REDACT\"");
         assertThat(response.getBody()).contains("\"condition\": \"confidence > 0.8\"");
     }
@@ -214,8 +221,8 @@ public class PolicyEditorApplicationTests {
         request.getSplitting().setMethod("sentence");
         request.getSplitting().setThreshold(500);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         
         assertThat(response.getBody()).contains("\"redactionColor\": \"red\"");
         assertThat(response.getBody()).contains("\"dpi\": 300");
@@ -244,8 +251,8 @@ public class PolicyEditorApplicationTests {
 
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         
         assertThat(response.getBody()).contains("ageFilterStrategies");
         assertThat(response.getBody()).contains("\"strategy\": \"REDACT\"");
@@ -265,8 +272,8 @@ public class PolicyEditorApplicationTests {
         selection.getStrategies().add(strategy);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"RANDOM_REPLACE\"");
         assertThat(response.getBody()).contains("\"anonymizationMethod\": \"REALISTIC\"");
     }
@@ -298,9 +305,9 @@ public class PolicyEditorApplicationTests {
         p2.getStrategies().add(s2);
         request.getFilters().add(p2);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
         System.out.println("[DEBUG_LOG] PhEye Response: " + response.getBody());
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
 
         assertThat(response.getBody()).contains("pheyes");
         assertThat(response.getBody()).contains("http://pheye-1:8080");
@@ -340,9 +347,9 @@ public class PolicyEditorApplicationTests {
         d2.getStrategies().add(s2);
         request.getFilters().add(d2);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
         System.out.println("[DEBUG_LOG] Dictionary Response: " + response.getBody());
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
 
         assertThat(response.getBody()).contains("dictionaries");
         assertThat(response.getBody()).contains("\"classification\": \"medical\"");
@@ -369,9 +376,9 @@ public class PolicyEditorApplicationTests {
         request.setName("test-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"enabled\": false");
     }
 
@@ -381,9 +388,9 @@ public class PolicyEditorApplicationTests {
         request.setName("ignored-policy");
         request.setIgnored(Arrays.asList("term1", "term2"));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"ignored\": [");
         assertThat(response.getBody()).contains("\"term1\"");
         assertThat(response.getBody()).contains("\"term2\"");
@@ -395,9 +402,9 @@ public class PolicyEditorApplicationTests {
         request.setName("ignored-patterns-policy");
         request.setIgnoredPatterns(Arrays.asList("[0-9]{3}", "[A-Z]{2}"));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"ignoredPatterns\": [");
         assertThat(response.getBody()).contains("\"pattern\": \"[0-9]{3}\"");
         assertThat(response.getBody()).contains("\"pattern\": \"[A-Z]{2}\"");
@@ -416,9 +423,9 @@ public class PolicyEditorApplicationTests {
         request.setName("redaction-format-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"redactionFormat\": \"CUSTOM_REDACTION\"");
     }
 
@@ -435,9 +442,9 @@ public class PolicyEditorApplicationTests {
         request.setName("mask-character-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"maskCharacter\": \"#\"");
     }
 
@@ -454,9 +461,9 @@ public class PolicyEditorApplicationTests {
         request.setName("default-mask-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"maskCharacter\": \"*\"");
     }
 
@@ -473,9 +480,9 @@ public class PolicyEditorApplicationTests {
         request.setName("mask-length-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"maskLength\": \"10\"");
     }
 
@@ -492,9 +499,9 @@ public class PolicyEditorApplicationTests {
         request.setName("replacement-scope-policy");
         request.setFilters(Arrays.asList(filterSelection));
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/generate"), request, String.class);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"replacementScope\": \"DOCUMENT\"");
     }
 
@@ -511,9 +518,9 @@ public class PolicyEditorApplicationTests {
         selection.getStrategies().add(strategy);
         request.getFilters().add(selection);
 
-        ResponseEntity<String> response = restTemplate.postForEntity("/test-policy", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(getUrl("/test-policy"), request, String.class);
         
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotBlank();
         assertThat(response.getBody()).contains("filteredText");
         assertThat(response.getBody()).contains("explanation");

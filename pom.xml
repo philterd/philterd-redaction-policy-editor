@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.5</version>
+		<version>4.0.6</version>
 		<relativePath/>
 	</parent>
 	<groupId>ai.philterd</groupId>
@@ -26,26 +26,22 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>ai.philterd</groupId>
 			<artifactId>phileas</artifactId>
 			<version>${phileas.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.18.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<finalName>philterd-policy-editor</finalName>
 		<plugins>
@@ -55,5 +51,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
