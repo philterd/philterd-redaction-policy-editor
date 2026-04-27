@@ -5,7 +5,7 @@ The Philterd Policy Editor can be run using Docker or built locally using Maven.
 ## Prerequisites
 
 - **Docker**: (Optional) For running via containers.
-- **Java 17**: For local builds.
+- **Java 21**: For local builds.
 - **Maven 3.x**: For local builds.
 
 ## Running with Docker

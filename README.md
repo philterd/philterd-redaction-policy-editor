@@ -26,9 +26,35 @@ The Philterd Policy Editor can be configured using environment variables:
 
 ## Getting Started
 
+### Using Docker
+
 ```bash
 docker-compose build
 docker-compose up
+```
+
+### Using Makefile
+
+The project includes a `Makefile` for common development tasks:
+
+```bash
+# Build the JAR and the Docker image
+make
+
+# Build just the JAR
+make build-jar
+
+# Build just the Docker image
+make build-docker
+
+# Push the Docker image to DockerHub
+make push-docker
+
+# Run tests
+make test
+
+# Clean build artifacts
+make clean
 ```
 
 You can now access the editor at `http://localhost:8080`. To access it from other machines on your network, use the host's IP address: `http://<host-ip>:8080`.
