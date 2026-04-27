@@ -4,6 +4,19 @@
     <title>Philterd Redaction Policy Editor</title>
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Google Analytics (GA4) -->
+    <th:block th:if="${googleAnalyticsTrackingId}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${googleAnalyticsTrackingId}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', /*[[${googleAnalyticsTrackingId}]]*/ 'G-XXXXXXXXXX');
+        </script>
+    </th:block>
+
     <style>
         body { padding: 20px; }
         .filter-row { margin-bottom: 10px; }
@@ -244,21 +257,21 @@
                 </div>
 
                 <div class="row mt-3 zip-code-options d-none">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Truncate Digits</label>
-                        <input type="number" class="form-control zip-truncate" value="0">
+                        <input type="number" class="form-control zip-truncate" value="0" style="width: 65px;">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Leave Characters</label>
-                        <input type="number" class="form-control zip-leave" value="0">
+                        <input type="number" class="form-control zip-leave" value="0" style="width: 65px;">
                     </div>
-                    <div class="col-md-3 d-flex align-items-center mt-4">
+                    <div class="col-md-2 d-flex align-items-center mt-4">
                         <div class="form-check">
                             <input class="form-check-input zip-require-delimiter" type="checkbox">
                             <label class="form-check-label">Require Delimiter</label>
                         </div>
                     </div>
-                    <div class="col-md-3 d-flex align-items-center mt-4">
+                    <div class="col-md-2 d-flex align-items-center mt-4">
                         <div class="form-check">
                             <input class="form-check-input zip-validate" type="checkbox">
                             <label class="form-check-label">Validate</label>
@@ -449,15 +462,47 @@
 
             row.innerHTML = `
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Strategy</label>
-                        <select class="form-select filter-strategy">
+                        <select class="form-select filter-strategy" onchange="onStrategyChange(this)">
                             ${strategyOptions}
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">Condition (Optional)</label>
                         <input type="text" class="form-control filter-condition" placeholder="e.g., confidence > 0.8">
+                    </div>
+                    <div class="col-md-3 redaction-format-container">
+                        <label class="form-label">Redaction Format</label>
+                        <input type="text" class="form-control redaction-format" value="{{{REDACTED-%t}}}">
+                    </div>
+                    <div class="col-md-1 mask-character-container">
+                        <label class="form-label">Mask</label>
+                        <input type="text" class="form-control mask-character" value="*" maxlength="1" style="width: 50px;">
+                    </div>
+                    <div class="col-md-1 mask-length-container">
+                        <label class="form-label">Length</label>
+                        <input type="number" class="form-control mask-length" min="0" placeholder="0" style="width: 65px;">
+                    </div>
+                    <div class="col-md-2 replacement-scope-container">
+                        <label class="form-label">Replacement Scope</label>
+                        <select class="form-select replacement-scope">
+                            <option value="CONTEXT">CONTEXT</option>
+                            <option value="DOCUMENT">DOCUMENT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 mt-2 anonymization-candidates-container">
+                        <label class="form-label">Anonymization Candidates (One per line)</label>
+                        <textarea class="form-control anonymization-candidates" rows="3" placeholder="Candidate 1\nCandidate 2"></textarea>
+                    </div>
+                    <div class="col-md-2 truncate-length-container">
+                        <label class="form-label">Truncate Length</label>
+                        <select class="form-select truncate-length">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeStrategyRow(this)">Remove</button>
@@ -465,6 +510,49 @@
                 </div>
             `;
             container.appendChild(row);
+            
+            // Initial toggle check
+            onStrategyChange(row.querySelector('.filter-strategy'));
+        }
+
+        function onStrategyChange(selectElement) {
+            const row = selectElement.closest('.strategy-row');
+            const formatContainer = row.querySelector('.redaction-format-container');
+            const maskContainer = row.querySelector('.mask-character-container');
+            const maskLengthContainer = row.querySelector('.mask-length-container');
+            const replacementScopeContainer = row.querySelector('.replacement-scope-container');
+            const candidatesContainer = row.querySelector('.anonymization-candidates-container');
+            const truncateLengthContainer = row.querySelector('.truncate-length-container');
+            
+            const piiType = row.closest('.filter-row').querySelector('.filter-type').value;
+            
+            if (selectElement.value === 'REDACT') {
+                formatContainer.classList.remove('d-none');
+            } else {
+                formatContainer.classList.add('d-none');
+            }
+
+            if (selectElement.value === 'MASK') {
+                maskContainer.classList.remove('d-none');
+                maskLengthContainer.classList.remove('d-none');
+            } else {
+                maskContainer.classList.add('d-none');
+                maskLengthContainer.classList.add('d-none');
+            }
+
+            if (selectElement.value === 'RANDOM_REPLACE') {
+                replacementScopeContainer.classList.remove('d-none');
+                candidatesContainer.classList.remove('d-none');
+            } else {
+                replacementScopeContainer.classList.add('d-none');
+                candidatesContainer.classList.add('d-none');
+            }
+
+            if (selectElement.value === 'TRUNCATE' && piiType === 'Zip Code') {
+                truncateLengthContainer.classList.remove('d-none');
+            } else {
+                truncateLengthContainer.classList.add('d-none');
+            }
         }
 
         function removeStrategyRow(button) {
@@ -518,6 +606,7 @@
                 strategySelect.innerHTML = currentStrategies.map(s => 
                     `<option value="${s}" ${s === currentStrategy ? 'selected' : ''}>${s}</option>`
                 ).join('');
+                onStrategyChange(strategySelect);
             });
         }
 
@@ -565,8 +654,17 @@
                 row.querySelectorAll('.strategy-row').forEach(sRow => {
                     const strategy = sRow.querySelector('.filter-strategy').value;
                     const condition = sRow.querySelector('.filter-condition').value;
+                    const redactionFormat = sRow.querySelector('.redaction-format').value;
+                    const maskCharacter = sRow.querySelector('.mask-character').value;
+                    const maskLengthVal = sRow.querySelector('.mask-length').value;
+                    const replacementScope = sRow.querySelector('.replacement-scope').value;
+                    const anonymizationCandidatesText = sRow.querySelector('.anonymization-candidates').value;
+                    const anonymizationCandidates = anonymizationCandidatesText.split('\n').map(c => c.trim()).filter(c => c !== '');
+                    const truncateLengthVal = sRow.querySelector('.truncate-length').value;
                     
-                    const s = { strategy, condition };
+                    const s = { strategy, condition, redactionFormat, maskCharacter, replacementScope, anonymizationCandidates };
+                    if (maskLengthVal) s.maskLength = parseInt(maskLengthVal);
+                    if (truncateLengthVal && strategy === 'TRUNCATE' && type === 'Zip Code') s.truncateLength = parseInt(truncateLengthVal);
                     
                     if (type === 'Zip Code') {
                         s.truncateDigits = row.querySelector('.zip-truncate').value;
@@ -812,6 +910,25 @@
                         const lastSRow = sRows[sRows.length - 1];
                         lastSRow.querySelector('.filter-strategy').value = s.strategy;
                         lastSRow.querySelector('.filter-condition').value = s.condition || '';
+                        if (s.redactionFormat !== undefined) {
+                            lastSRow.querySelector('.redaction-format').value = s.redactionFormat;
+                        }
+                        if (s.maskCharacter !== undefined) {
+                            lastSRow.querySelector('.mask-character').value = s.maskCharacter;
+                        }
+                        if (s.maskLength !== undefined) {
+                            lastSRow.querySelector('.mask-length').value = s.maskLength;
+                        }
+                        if (s.replacementScope !== undefined) {
+                            lastSRow.querySelector('.replacement-scope').value = s.replacementScope;
+                        }
+                        if (s.anonymizationCandidates !== undefined && Array.isArray(s.anonymizationCandidates)) {
+                            lastSRow.querySelector('.anonymization-candidates').value = s.anonymizationCandidates.join('\n');
+                        }
+                        if (s.truncateLength !== undefined) {
+                            lastSRow.querySelector('.truncate-length').value = s.truncateLength;
+                        }
+                        onStrategyChange(lastSRow.querySelector('.filter-strategy'));
                         
                         // Zip code strategy params
                         if (row.querySelector('.filter-type').value === 'Zip Code') {

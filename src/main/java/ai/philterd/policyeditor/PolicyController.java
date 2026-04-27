@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Philterd, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ai.philterd.policyeditor;
 
 import ai.philterd.phileas.PhileasConfiguration;
@@ -21,6 +36,8 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +50,8 @@ import java.util.Properties;
 
 @Controller
 public class PolicyController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyController.class);
 
     private final Gson gson;
 
@@ -86,6 +105,9 @@ public class PolicyController {
         final String hidePiiWarning = System.getenv("HIDE_PII_WARNING");
         model.addAttribute("hidePiiWarning", "1".equals(hidePiiWarning));
 
+        final String googleAnalyticsTrackingId = System.getenv("GOOGLE_ANALYTICS_TRACKING_ID");
+        model.addAttribute("googleAnalyticsTrackingId", googleAnalyticsTrackingId);
+
         model.addAttribute("policyRequest", new PolicyRequest());
         model.addAttribute("piiTypes", Arrays.asList(
             "Age", "Bank Routing Number", "Bitcoin Address", "City", "County", "Credit Card", 
@@ -102,6 +124,7 @@ public class PolicyController {
     @PostMapping("/generate")
     @ResponseBody
     public String generate(@RequestBody PolicyRequest request) throws IOException {
+        LOGGER.info("Generating policy: {}", request.getName());
         Policy policy = new Policy();
         
         Identifiers identifiers = new Identifiers();
@@ -118,6 +141,11 @@ public class PolicyController {
                     AgeFilterStrategy strategy = new AgeFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 age.setAgeFilterStrategies(strategies);
@@ -131,6 +159,11 @@ public class PolicyController {
                     BankRoutingNumberFilterStrategy strategy = new BankRoutingNumberFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 brn.setBankRoutingNumberFilterStrategies(strategies);
@@ -144,6 +177,11 @@ public class PolicyController {
                     BitcoinAddressFilterStrategy strategy = new BitcoinAddressFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ba.setBitcoinFilterStrategies(strategies);
@@ -160,6 +198,11 @@ public class PolicyController {
                     CityFilterStrategy strategy = new CityFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 city.setCityFilterStrategies(strategies);
@@ -176,6 +219,11 @@ public class PolicyController {
                     CountyFilterStrategy strategy = new CountyFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 county.setCountyFilterStrategies(strategies);
@@ -192,6 +240,11 @@ public class PolicyController {
                     CreditCardFilterStrategy strategy = new CreditCardFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 cc.setCreditCardFilterStrategies(strategies);
@@ -205,6 +258,11 @@ public class PolicyController {
                     CurrencyFilterStrategy strategy = new CurrencyFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 currency.setCurrencyFilterStrategies(strategies);
@@ -219,6 +277,11 @@ public class PolicyController {
                     DateFilterStrategy strategy = new DateFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 date.setDateFilterStrategies(strategies);
@@ -238,6 +301,11 @@ public class PolicyController {
                     CustomDictionaryFilterStrategy strategy = new CustomDictionaryFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 cd.setCustomDictionaryFilterStrategies(strategies);
@@ -251,6 +319,11 @@ public class PolicyController {
                     DriversLicenseFilterStrategy strategy = new DriversLicenseFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 dl.setDriversLicenseFilterStrategies(strategies);
@@ -266,6 +339,11 @@ public class PolicyController {
                     EmailAddressFilterStrategy strategy = new EmailAddressFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 email.setEmailAddressFilterStrategies(strategies);
@@ -282,6 +360,11 @@ public class PolicyController {
                     FirstNameFilterStrategy strategy = new FirstNameFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 fn.setFirstNameFilterStrategies(strategies);
@@ -298,6 +381,11 @@ public class PolicyController {
                     HospitalFilterStrategy strategy = new HospitalFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 h.setHospitalFilterStrategies(strategies);
@@ -313,6 +401,11 @@ public class PolicyController {
                     IbanCodeFilterStrategy strategy = new IbanCodeFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 iban.setIbanCodeFilterStrategies(strategies);
@@ -326,6 +419,11 @@ public class PolicyController {
                     IpAddressFilterStrategy strategy = new IpAddressFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ip.setIpAddressFilterStrategies(strategies);
@@ -339,6 +437,11 @@ public class PolicyController {
                     MacAddressFilterStrategy strategy = new MacAddressFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 mac.setMacAddressFilterStrategies(strategies);
@@ -352,6 +455,11 @@ public class PolicyController {
                     PassportNumberFilterStrategy strategy = new PassportNumberFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPassportNumberFilterStrategies(strategies);
@@ -377,6 +485,11 @@ public class PolicyController {
                     PhEyeFilterStrategy strategy = new PhEyeFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 phEye.setPhEyeFilterStrategies(strategies);
@@ -390,6 +503,11 @@ public class PolicyController {
                     PhoneNumberFilterStrategy strategy = new PhoneNumberFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPhoneNumberFilterStrategies(strategies);
@@ -403,6 +521,11 @@ public class PolicyController {
                     PhoneNumberExtensionFilterStrategy strategy = new PhoneNumberExtensionFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pne.setPhoneNumberExtensionFilterStrategies(strategies);
@@ -416,6 +539,11 @@ public class PolicyController {
                     PhysicianNameFilterStrategy strategy = new PhysicianNameFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 pn.setPhysicianNameFilterStrategies(strategies);
@@ -429,6 +557,11 @@ public class PolicyController {
                     SsnFilterStrategy strategy = new SsnFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 ssn.setSsnFilterStrategies(strategies);
@@ -445,6 +578,11 @@ public class PolicyController {
                     StateFilterStrategy strategy = new StateFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 state.setStateFilterStrategies(strategies);
@@ -458,6 +596,11 @@ public class PolicyController {
                     StateAbbreviationFilterStrategy strategy = new StateAbbreviationFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 sa.setStateAbbreviationsFilterStrategies(strategies);
@@ -471,6 +614,11 @@ public class PolicyController {
                     StreetAddressFilterStrategy strategy = new StreetAddressFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 sa.setStreetAddressFilterStrategies(strategies);
@@ -487,6 +635,11 @@ public class PolicyController {
                     SurnameFilterStrategy strategy = new SurnameFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 surname.setSurnameFilterStrategies(strategies);
@@ -504,6 +657,11 @@ public class PolicyController {
                     TrackingNumberFilterStrategy strategy = new TrackingNumberFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 tn.setTrackingNumberFilterStrategies(strategies);
@@ -517,6 +675,11 @@ public class PolicyController {
                     UrlFilterStrategy strategy = new UrlFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 url.setUrlFilterStrategies(strategies);
@@ -530,6 +693,11 @@ public class PolicyController {
                     VinFilterStrategy strategy = new VinFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
                 vin.setVinFilterStrategies(strategies);
@@ -546,12 +714,20 @@ public class PolicyController {
                     ZipCodeFilterStrategy strategy = new ZipCodeFilterStrategy();
                     strategy.setStrategy(s.getStrategy());
                     strategy.setConditions(s.getCondition());
+                    strategy.setRedactionFormat(s.getRedactionFormat());
+                    strategy.setMaskCharacter(s.getMaskCharacter());
+                    if (s.getMaskLength() != null) strategy.setMaskLength(String.valueOf(s.getMaskLength()));
+                    if (s.getTruncateDigits() != null) {
+                        strategy.setTruncateDigits(s.getTruncateDigits());
+                    }
                     if (s.getTruncateLeaveCharacters() != null) {
                         strategy.setTruncateLeaveCharacters(s.getTruncateLeaveCharacters());
                     }
-                    if (s.getTruncateDigits() != null) {
-                        strategy.setTruncateLeaveCharacters(s.getTruncateDigits());
+                    if (s.getTruncateLength() != null) {
+                        strategy.setTruncateDigits(s.getTruncateLength());
                     }
+                    strategy.setReplacementScope(s.getReplacementScope());
+                    strategy.setAnonymizationCandidates(s.getAnonymizationCandidates());
                     strategies.add(strategy);
                 }
 
@@ -611,6 +787,7 @@ public class PolicyController {
     @PostMapping("/test-policy")
     @ResponseBody
     public TestPolicyResponse testPolicy(@RequestBody PolicyRequest request) {
+        LOGGER.info("Testing policy: {}", request.getName());
         try {
             String policyJson = generate(request);
             Policy policy = gson.fromJson(policyJson, Policy.class);
@@ -622,7 +799,7 @@ public class PolicyController {
 
             return new TestPolicyResponse(result.getFilteredText(), gson.toJson(result.getExplanation()));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error testing policy: {}", e.getMessage(), e);
             return new TestPolicyResponse("Error: " + e.getMessage(), "");
         }
     }

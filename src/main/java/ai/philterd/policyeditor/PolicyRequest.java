@@ -1,9 +1,25 @@
+/*
+ * Copyright 2026 Philterd, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ai.philterd.policyeditor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PolicyRequest {
+
     private String name;
     private List<FilterSelection> filters = new ArrayList<>();
     private List<String> ignored = new ArrayList<>();
@@ -139,8 +155,14 @@ public class PolicyRequest {
     public static class StrategySelection {
         private String strategy;
         private String condition;
+        private String redactionFormat = "{{{REDACTED-%t}}}";
+        private String maskCharacter = "*";
+        private Integer maskLength;
         private Integer truncateDigits;
         private Integer truncateLeaveCharacters;
+        private Integer truncateLength;
+        private String replacementScope;
+        private List<String> anonymizationCandidates = new ArrayList<>();
 
         public String getStrategy() {
             return strategy;
@@ -158,6 +180,30 @@ public class PolicyRequest {
             this.condition = condition;
         }
 
+        public String getRedactionFormat() {
+            return redactionFormat;
+        }
+
+        public void setRedactionFormat(String redactionFormat) {
+            this.redactionFormat = redactionFormat;
+        }
+        
+        public String getMaskCharacter() {
+            return maskCharacter;
+        }
+
+        public void setMaskCharacter(String maskCharacter) {
+            this.maskCharacter = maskCharacter;
+        }
+        
+        public Integer getMaskLength() {
+            return maskLength;
+        }
+
+        public void setMaskLength(Integer maskLength) {
+            this.maskLength = maskLength;
+        }
+
         public Integer getTruncateDigits() {
             return truncateDigits;
         }
@@ -172,6 +218,30 @@ public class PolicyRequest {
 
         public void setTruncateLeaveCharacters(Integer truncateLeaveCharacters) {
             this.truncateLeaveCharacters = truncateLeaveCharacters;
+        }
+
+        public Integer getTruncateLength() {
+            return truncateLength;
+        }
+
+        public void setTruncateLength(Integer truncateLength) {
+            this.truncateLength = truncateLength;
+        }
+
+        public String getReplacementScope() {
+            return replacementScope;
+        }
+
+        public void setReplacementScope(String replacementScope) {
+            this.replacementScope = replacementScope;
+        }
+
+        public List<String> getAnonymizationCandidates() {
+            return anonymizationCandidates;
+        }
+
+        public void setAnonymizationCandidates(List<String> anonymizationCandidates) {
+            this.anonymizationCandidates = anonymizationCandidates;
         }
     }
 
@@ -447,5 +517,7 @@ public class PolicyRequest {
         public void setWindowSize(int windowSize) {
             this.windowSize = windowSize;
         }
+
     }
+
 }

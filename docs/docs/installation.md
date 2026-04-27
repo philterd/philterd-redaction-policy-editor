@@ -28,6 +28,7 @@ The Philterd Policy Editor can be configured using environment variables:
 | Environment Variable | Description | Default |
 | --- | --- | --- |
 | `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
+| `GOOGLE_ANALYTICS_TRACKING_ID` | The Google Analytics tracking ID. | |
 
 ## Building and Running Locally
 

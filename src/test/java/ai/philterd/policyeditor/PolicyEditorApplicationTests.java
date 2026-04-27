@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Philterd, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ai.philterd.policyeditor;
 
 import org.junit.jupiter.api.Test;
@@ -77,7 +92,7 @@ public class PolicyEditorApplicationTests {
         selection.setType("Zip Code");
         PolicyRequest.StrategySelection strategy = new PolicyRequest.StrategySelection();
         strategy.setStrategy("TRUNCATE");
-        strategy.setTruncateDigits(3);
+        strategy.setTruncateDigits(1);
         strategy.setTruncateLeaveCharacters(2);
         selection.getStrategies().add(strategy);
         selection.setRequireDelimiter(true);
@@ -85,12 +100,31 @@ public class PolicyEditorApplicationTests {
         request.getFilters().add(selection);
 
         ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        System.out.println("[DEBUG_LOG] ZIP JSON: " + response.getBody());
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"strategy\": \"TRUNCATE\"");
         assertThat(response.getBody()).contains("zipCodeFilterStrategy");
-        assertThat(response.getBody()).contains("\"truncateLeaveCharacters\": 3");
+        assertThat(response.getBody()).contains("\"truncateLeaveCharacters\": 2");
         assertThat(response.getBody()).contains("\"requireDelimiter\": true");
         assertThat(response.getBody()).contains("\"validate\": true");
+    }
+
+    @Test
+    public void shouldGenerateZipCodePolicyWithTruncateLength() {
+        PolicyRequest request = new PolicyRequest();
+        request.setName("zip-truncate-length-policy");
+        PolicyRequest.FilterSelection selection = new PolicyRequest.FilterSelection();
+        selection.setType("Zip Code");
+        PolicyRequest.StrategySelection strategy = new PolicyRequest.StrategySelection();
+        strategy.setStrategy("TRUNCATE");
+        strategy.setTruncateLength(4);
+        selection.getStrategies().add(strategy);
+        request.getFilters().add(selection);
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"strategy\": \"TRUNCATE\"");
+        assertThat(response.getBody()).contains("\"truncateLeaveCharacters\": 4");
     }
 
     @Test
@@ -367,6 +401,122 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("\"ignoredPatterns\": [");
         assertThat(response.getBody()).contains("\"pattern\": \"[0-9]{3}\"");
         assertThat(response.getBody()).contains("\"pattern\": \"[A-Z]{2}\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithRedactionFormat() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("REDACT");
+        strategySelection.setRedactionFormat("CUSTOM_REDACTION");
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("redaction-format-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"redactionFormat\": \"CUSTOM_REDACTION\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithMaskCharacter() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("MASK");
+        strategySelection.setMaskCharacter("#");
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("mask-character-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"maskCharacter\": \"#\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithDefaultMaskCharacter() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("MASK");
+        // Not setting maskCharacter explicitly
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("default-mask-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"maskCharacter\": \"*\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithMaskLength() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("MASK");
+        strategySelection.setMaskLength(10);
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("mask-length-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"maskLength\": \"10\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithReplacementScope() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("RANDOM_REPLACE");
+        strategySelection.setReplacementScope("DOCUMENT");
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("replacement-scope-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"replacementScope\": \"DOCUMENT\"");
+    }
+
+    @Test
+    public void shouldGeneratePolicyWithAnonymizationCandidates() {
+        PolicyRequest.FilterSelection filterSelection = new PolicyRequest.FilterSelection();
+        filterSelection.setType("Age");
+        PolicyRequest.StrategySelection strategySelection = new PolicyRequest.StrategySelection();
+        strategySelection.setStrategy("RANDOM_REPLACE");
+        strategySelection.setAnonymizationCandidates(Arrays.asList("candidate1", "candidate2"));
+        filterSelection.setStrategies(Arrays.asList(strategySelection));
+
+        PolicyRequest request = new PolicyRequest();
+        request.setName("anonymization-candidates-policy");
+        request.setFilters(Arrays.asList(filterSelection));
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/generate", request, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"anonymizationCandidates\": [");
+        assertThat(response.getBody()).contains("\"candidate1\"");
+        assertThat(response.getBody()).contains("\"candidate2\"");
     }
 
     @Test

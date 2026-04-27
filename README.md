@@ -12,6 +12,7 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
 - **Policy Management**: Upload existing JSON policies to edit, and download or copy generated policies.
+- **Policy Testing**: Test your policies against sample text directly in the browser and view detailed redaction explanations.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Configuration
@@ -21,6 +22,7 @@ The Philterd Policy Editor can be configured using environment variables:
 | Environment Variable | Description | Default |
 | --- | --- | --- |
 | `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
+| `GOOGLE_ANALYTICS_TRACKING_ID` | The Google Analytics tracking ID. | |
 
 ## Getting Started
 
