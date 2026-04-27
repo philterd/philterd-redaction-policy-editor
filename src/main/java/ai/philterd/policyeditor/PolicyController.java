@@ -1,5 +1,7 @@
 package ai.philterd.policyeditor;
 
+import ai.philterd.phileas.PhileasConfiguration;
+import ai.philterd.phileas.model.filtering.TextFilterResult;
 import ai.philterd.phileas.policy.Identifiers;
 import ai.philterd.phileas.policy.Policy;
 import ai.philterd.phileas.policy.Config;
@@ -7,6 +9,9 @@ import ai.philterd.phileas.policy.PostFilters;
 import ai.philterd.phileas.policy.config.Pdf;
 import ai.philterd.phileas.policy.config.Splitting;
 import ai.philterd.phileas.policy.filters.*;
+import ai.philterd.phileas.services.context.DefaultContextService;
+import ai.philterd.phileas.services.disambiguation.vector.InMemoryVectorService;
+import ai.philterd.phileas.services.filters.filtering.PlainTextFilterService;
 import ai.philterd.phileas.services.strategies.rules.*;
 import ai.philterd.phileas.services.strategies.dynamic.*;
 import ai.philterd.phileas.services.strategies.ai.*;
@@ -24,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 @Controller
 public class PolicyController {
@@ -600,5 +606,42 @@ public class PolicyController {
         policy.setConfig(config);
         
         return gson.toJson(policy);
+    }
+
+    @PostMapping("/test-policy")
+    @ResponseBody
+    public TestPolicyResponse testPolicy(@RequestBody PolicyRequest request) {
+        try {
+            String policyJson = generate(request);
+            Policy policy = gson.fromJson(policyJson, Policy.class);
+
+            PhileasConfiguration phileasConfiguration = new PhileasConfiguration(new Properties());
+            PlainTextFilterService filterService = new PlainTextFilterService(phileasConfiguration, new DefaultContextService(), new InMemoryVectorService(), null);
+
+            TextFilterResult result = filterService.filter(policy, "context", request.getText());
+
+            return new TestPolicyResponse(result.getFilteredText(), gson.toJson(result.getExplanation()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new TestPolicyResponse("Error: " + e.getMessage(), "");
+        }
+    }
+
+    public static class TestPolicyResponse {
+        private String filteredText;
+        private String explanation;
+
+        public TestPolicyResponse(String filteredText, String explanation) {
+            this.filteredText = filteredText;
+            this.explanation = explanation;
+        }
+
+        public String getFilteredText() {
+            return filteredText;
+        }
+
+        public String getExplanation() {
+            return explanation;
+        }
     }
 }

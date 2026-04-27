@@ -368,4 +368,24 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("\"pattern\": \"[0-9]{3}\"");
         assertThat(response.getBody()).contains("\"pattern\": \"[A-Z]{2}\"");
     }
+
+    @Test
+    public void shouldTestPolicy() {
+        PolicyRequest request = new PolicyRequest();
+        request.setName("test-redaction");
+        request.setText("My age is 25.");
+        PolicyRequest.FilterSelection selection = new PolicyRequest.FilterSelection();
+        selection.setType("Age");
+        PolicyRequest.StrategySelection strategy = new PolicyRequest.StrategySelection();
+        strategy.setStrategy("REDACT");
+        selection.getStrategies().add(strategy);
+        request.getFilters().add(selection);
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/test-policy", request, String.class);
+        
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).isNotBlank();
+        assertThat(response.getBody()).contains("filteredText");
+        assertThat(response.getBody()).contains("explanation");
+    }
 }

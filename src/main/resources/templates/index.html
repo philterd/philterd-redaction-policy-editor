@@ -153,6 +153,7 @@
         <div id="results-section" class="d-none">
             <div class="mt-5 pt-4 border-top">
                 <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
+                <button type="button" class="btn btn-outline-primary ms-2" onclick="showTestSection()">Test Policy</button>
                 <button type="button" class="btn btn-outline-info ms-2" onclick="copyToClipboard()">Copy to Clipboard</button>
                 <button type="button" class="btn btn-outline-success ms-2" onclick="downloadPolicy()">Download Policy</button>
             </div>
@@ -164,6 +165,27 @@
 
         <div id="generate-button-container" class="mt-5 pt-4 border-top">
             <button type="button" class="btn btn-primary" onclick="generatePolicy()">Generate Policy</button>
+        </div>
+
+        <div id="test-section" class="d-none mt-4">
+            <hr>
+            <h3>Test Policy</h3>
+            <div class="mb-3">
+                <label for="testText" class="form-label">Input Text</label>
+                <textarea class="form-control" id="testText" rows="5" placeholder="Paste text here to test the policy..."></textarea>
+            </div>
+            <button type="button" class="btn btn-success" onclick="redactText()">Redact</button>
+            <button type="button" class="btn btn-info ms-2 d-none" id="showExplanationBtn" onclick="toggleExplanation()">Show Explanation</button>
+            
+            <div class="mt-4">
+                <label for="redactedText" class="form-label">Redacted Text</label>
+                <textarea class="form-control" id="redactedText" rows="5" readonly placeholder="Redacted text will appear here..."></textarea>
+            </div>
+
+            <div id="explanationSection" class="mt-4 d-none">
+                <label for="explanationText" class="form-label">Explanation</label>
+                <textarea class="form-control" id="explanationText" rows="10" readonly></textarea>
+            </div>
         </div>
 
         <footer class="mt-5 py-3 border-top text-center text-muted">
@@ -529,7 +551,7 @@
             }
         }
 
-        async function generatePolicy() {
+        function getPolicyRequest() {
             const name = document.getElementById('policyName').value;
             const filterRows = document.querySelectorAll('.filter-row');
             const filters = [];
@@ -628,12 +650,18 @@
             const ignoredPatternsText = document.getElementById('ignoredPatterns').value;
             const ignoredPatterns = ignoredPatternsText.split('\n').map(p => p.trim()).filter(p => p !== '');
 
+            return { name, filters, ignored, ignoredPatterns, postFilters, pdf, splitting };
+        }
+
+        async function generatePolicy() {
+            const request = getPolicyRequest();
+
             const response = await fetch('/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name, filters, ignored, ignoredPatterns, postFilters, pdf, splitting })
+                body: JSON.stringify(request)
             });
 
             const result = await response.text();
@@ -676,6 +704,58 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+
+        function showTestSection() {
+            document.getElementById('test-section').classList.remove('d-none');
+            document.getElementById('test-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function redactText() {
+            const request = getPolicyRequest();
+            request.text = document.getElementById('testText').value;
+
+            if (!request.text) {
+                alert('Please enter some text to redact.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/test-policy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('redactedText').value = result.filteredText;
+                    document.getElementById('explanationText').value = JSON.stringify(JSON.parse(result.explanation), null, 2);
+                    document.getElementById('showExplanationBtn').classList.remove('d-none');
+                    document.getElementById('explanationSection').classList.add('d-none');
+                    document.getElementById('showExplanationBtn').textContent = 'Show Explanation';
+                } else {
+                    alert('Error redacting text.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error redacting text.');
+            }
+        }
+
+        function toggleExplanation() {
+            const explanationSection = document.getElementById('explanationSection');
+            const showBtn = document.getElementById('showExplanationBtn');
+            
+            if (explanationSection.classList.contains('d-none')) {
+                explanationSection.classList.remove('d-none');
+                showBtn.textContent = 'Hide Explanation';
+            } else {
+                explanationSection.classList.add('d-none');
+                showBtn.textContent = 'Show Explanation';
+            }
         }
 
         function handleFileUpload(event) {
@@ -916,6 +996,13 @@
                 // Add one initial row
                 addFilterRow();
                 
+                document.getElementById('testText').value = '';
+                document.getElementById('redactedText').value = '';
+                document.getElementById('explanationText').value = '';
+                document.getElementById('showExplanationBtn').classList.add('d-none');
+                document.getElementById('explanationSection').classList.add('d-none');
+                document.getElementById('test-section').classList.add('d-none');
+
                 // Update selects (though addFilterRow calls it, it's good for clarity)
                 updateTypeSelects();
             }

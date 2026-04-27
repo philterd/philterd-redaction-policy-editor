@@ -175,6 +175,16 @@ public class PolicyRequest {
         }
     }
 
+    private String text;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
     public static class FilterSelection {
         private String type;
         private boolean enabled = true;
