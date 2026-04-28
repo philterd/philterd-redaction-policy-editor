@@ -25,6 +25,8 @@ When self-hosting, the tool is a self-contained application. When you click "Gen
 
 We recommend self-hosting the tool in an air-gapped (firewalled) environment for maximum security.
 
+For questions please contact us.
+
 ### Does the Philterd Redaction Policy Editor expose all policy capabilities?
 No. There are several capabilities of policies that cannot be configured by the graphical editor. To configure these capabilities, you can directly modify the JSON policy that is created. Over time we hope to have all aspects of policies available through the graphical editor.
 
