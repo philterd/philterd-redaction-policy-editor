@@ -47,10 +47,13 @@
     </a>
     <div class="container">
         <div th:unless="${hidePiiWarning}" class="alert alert-danger mt-3" role="alert">
-            <b>Warning: Do not enter any PII.</b> <a href="https://philterd.github.io/philterd-redaction-policy-editor">Learn how to run this tool in your own secure network.</a>
+            <b>Warning: Do not enter any PII.</b> <a href="https://philterd.github.io/philterd-redaction-policy-editor" target="_blank">Learn how to run this tool in your own secure network.</a>
         </div>
-        <h1>Philterd Redaction Policy Editor</h1>
-        <p>Generates redaction policies for Phileas and Philter. View the <a href="https://philterd.github.io/philterd-redaction-policy-editor/" target="_blank">documentation</a> or go to <a href="https://www.philterd.ai">Philterd</a>.</p>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Philterd Redaction Policy Editor</h1>
+            <a href="https://github.com/philterd/philterd-redaction-policy-editor" target="_blank"><small class="text-muted">Version <span th:text="${version}"></span>, commit <span th:text="${commit}"></span></small></a>
+        </div>
+        <p>Generates redaction policies for Phileas and Philter. View the <a href="https://philterd.github.io/philterd-redaction-policy-editor/" target="_blank">documentation</a> or go to <a href="https://www.philterd.ai" target="_blank">Philterd</a>.</p>
         <hr>
 
         <div class="mb-4 d-flex align-items-center">

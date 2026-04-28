@@ -30,16 +30,6 @@ docker-compose up
 2. Access the editor at `http://localhost:8080`.
 4. To allow others on your network to access the editor, ensure your firewall allows traffic on port `8080` and use your machine's IP address (e.g., `http://192.168.1.10:8080`).
 
-## Configuration
-
-The Philterd Policy Editor can be configured using environment variables:
-
-| Environment Variable | Description | Default |
-| --- | --- | --- |
-| `HIDE_PII_WARNING` | Set to `1` to hide the PII warning banner. | `0` |
-| `CUSTOM_HEADER_FILE` | Path to a file containing custom HTML to be inserted into the `<head>` of the page. | (empty) |
-| `CUSTOM_FOOTER_FILE` | Path to a file containing custom HTML to be inserted into the footer of the page. | (empty) |
-
 ## Building and Running Locally
 
 To build the project from source:

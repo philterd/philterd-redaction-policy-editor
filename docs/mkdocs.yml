@@ -13,5 +13,6 @@ theme:
 nav:
   - Home: index.md
   - Installation: installation.md
+  - Configuration: configuration.md
   - Usage Guide: usage.md
   - FAQ: faq.md

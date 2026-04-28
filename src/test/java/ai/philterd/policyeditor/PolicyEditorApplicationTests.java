@@ -70,6 +70,8 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("Philterd Redaction Policy Editor");
         assertThat(response.getBody()).contains("Do not enter any PII.");
+        assertThat(response.getBody()).contains("Version");
+        assertThat(response.getBody()).contains("commit");
     }
 
     @Test
