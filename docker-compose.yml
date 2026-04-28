@@ -1,7 +1,9 @@
 services:
 
   policy-editor:
+    #image: philterd/philterd-redaction-policy-editor:latest
     build: .
+    #restart: always
     environment:
       HIDE_PII_WARNING: 0
     ports:
