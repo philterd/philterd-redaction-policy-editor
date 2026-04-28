@@ -36,13 +36,16 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -101,9 +104,27 @@ public class PolicyController {
     }
 
     @GetMapping("/")
-    public String index(Model model) {
+    public String index(Model model) throws IOException {
         final String hidePiiWarning = System.getenv("HIDE_PII_WARNING");
         model.addAttribute("hidePiiWarning", "1".equals(hidePiiWarning));
+
+        final String customHeaderFile = System.getenv("CUSTOM_HEADER_FILE");
+        if (customHeaderFile != null) {
+            final File file = new File(customHeaderFile);
+            if (file.exists()) {
+                final String customHeader = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                model.addAttribute("customHeader", customHeader);
+            }
+        }
+
+        final String customFooterFile = System.getenv("CUSTOM_FOOTER_FILE");
+        if (customFooterFile != null) {
+            final File file = new File(customFooterFile);
+            if (file.exists()) {
+                final String customFooter = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                model.addAttribute("customFooter", customFooter);
+            }
+        }
 
         model.addAttribute("policyRequest", new PolicyRequest());
         model.addAttribute("piiTypes", Arrays.asList(

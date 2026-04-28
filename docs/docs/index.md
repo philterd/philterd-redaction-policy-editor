@@ -1,5 +1,7 @@
 # Philterd Policy Editor
 
+![Philterd Policy Editor](screenshot.png)
+
 Welcome to the Philterd Policy Editor documentation. This tool provides a user-friendly interface for building and managing redaction policies for [Philter](https://www.philterd.ai) and [Phileas](https://github.com/philterd/phileas), the open-source PII/PHI redaction engine.
 
 ## Features

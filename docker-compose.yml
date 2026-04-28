@@ -6,5 +6,10 @@ services:
     #restart: always
     environment:
       HIDE_PII_WARNING: 0
+      # CUSTOM_HEADER_FILE: /tmp/header.html
+      # CUSTOM_FOOTER_FILE: /tmp/footer.html
     ports:
       - "8080:8080"
+    #volumes:
+    #  - ./header.html:/tmp/header.html
+    #  - ./footer.html:/tmp/footer.html
