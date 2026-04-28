@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `CUSTOM_HEADER_FILE` environment variable to allow inserting custom HTML into the page header.
 - Added `CUSTOM_FOOTER_FILE` environment variable to allow inserting custom HTML into the page footer.
 - Updated `docker-compose.yml` with examples for using `CUSTOM_HEADER_FILE` and `CUSTOM_FOOTER_FILE` with mounts.
-- Added a screenshot to the documentation index.
+- - Added a "Fork on GitHub" badge to the index page.
 
 ## 1.0.0 - 2026-04-27
 
