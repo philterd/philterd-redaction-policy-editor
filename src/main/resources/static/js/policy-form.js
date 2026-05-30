@@ -666,22 +666,55 @@
         }
     }
 
+    // Reflect the selected schema version in the URL's ?version= param so the page is shareable.
+    function updateVersionInUrl(version) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("version", version);
+        window.history.replaceState(null, "", url);
+    }
+
     function init() {
         return fetch("/api/schemas")
             .then(function (r) { return r.json(); })
             .then(function (info) {
                 supportedTestVersion = info.supportedTestVersion;
+                const versions = info.versions || [];
+
+                // Allow ?version=<x> in the URL to choose the schema version on page load.
+                // An unknown/missing value falls back to the latest version.
+                const requested = new URLSearchParams(window.location.search).get("version");
+                const requestedIsValid = requested && versions.indexOf(requested) !== -1;
+                const initial = requestedIsValid ? requested : (info.latest || versions[0]);
+
+                const notice = document.getElementById("version-notice");
+                if (notice) {
+                    if (requested && !requestedIsValid) {
+                        notice.textContent = "Schema version \"" + requested +
+                            "\" is not available. Using version " + initial +
+                            " instead. Available versions: " + versions.join(", ") + ".";
+                        notice.classList.remove("d-none");
+                    } else {
+                        notice.classList.add("d-none");
+                    }
+                }
+
                 const select = document.getElementById("schema-version-select");
                 select.innerHTML = "";
-                (info.versions || []).forEach(function (v) {
+                versions.forEach(function (v) {
                     const o = el("option", null, v + (v === info.supportedTestVersion ? " (testable)" : ""));
                     o.value = v;
-                    if (v === info.latest) o.selected = true;
+                    if (v === initial) o.selected = true;
                     select.appendChild(o);
                 });
-                select.addEventListener("change", function () { loadSchema(select.value); });
-                const initial = info.latest || (info.versions && info.versions[0]);
-                if (initial) return loadSchema(initial);
+                select.addEventListener("change", function () {
+                    if (notice) notice.classList.add("d-none");
+                    updateVersionInUrl(select.value);
+                    loadSchema(select.value);
+                });
+                if (initial) {
+                    updateVersionInUrl(initial);
+                    return loadSchema(initial);
+                }
             })
             .catch(function (err) {
                 console.error(err);
