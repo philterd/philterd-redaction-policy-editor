@@ -1,0 +1,16 @@
+{
+  "identifiers": {
+    "creditCard": {
+      "creditCardFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "ibanCode": {
+      "ibanCodeFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "bankRoutingNumber": {
+      "bankRoutingNumberFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "bitcoinAddress": {
+      "bitcoinFilterStrategies": [{ "strategy": "REDACT" }]
+    }
+  }
+}
