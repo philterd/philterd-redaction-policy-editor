@@ -891,6 +891,49 @@
 
     // ---- Wire up ----------------------------------------------------------------------------
 
+    function togglePhiSqlPanel() {
+        const panel = document.getElementById("phisql-panel");
+        if (panel) panel.classList.toggle("d-none");
+    }
+
+    function showPhiSqlMessages(isError, messages) {
+        const box = document.getElementById("phisql-messages");
+        if (!box) return;
+        box.innerHTML = "";
+        box.classList.remove("d-none");
+        box.className = "mt-3 alert " + (isError ? "alert-danger" : "alert-success");
+        if (isError) {
+            box.appendChild(el("div", "fw-semibold", "PhiSQL could not be compiled:"));
+            const ul = el("ul", "mb-0");
+            (messages || []).forEach(function (m) { ul.appendChild(el("li", null, m)); });
+            box.appendChild(ul);
+        } else {
+            box.textContent = "Compiled successfully. The policy has been loaded into the editor below.";
+        }
+    }
+
+    // Compiles the PhiSQL in the panel to a native policy and loads it into the form, where it can be
+    // edited, tested, and downloaded like any other policy.
+    function compilePhiSql() {
+        const source = document.getElementById("phisql-input").value;
+        fetch("/api/compile", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: source
+        }).then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.success) {
+                    loadPolicyObject(JSON.parse(res.policy));
+                    showPhiSqlMessages(false, []);
+                } else {
+                    showPhiSqlMessages(true, res.errors || ["Unknown compile error."]);
+                }
+            })
+            .catch(function (err) {
+                showPhiSqlMessages(true, [err.message]);
+            });
+    }
+
     window.PolicyEditor = {
         generatePolicy: generatePolicy,
         copyToClipboard: copyToClipboard,
@@ -901,7 +944,9 @@
         confirmLoadPreset: confirmLoadPreset,
         showTestSection: showTestSection,
         redactText: redactText,
-        toggleExplanation: toggleExplanation
+        toggleExplanation: toggleExplanation,
+        togglePhiSqlPanel: togglePhiSqlPanel,
+        compilePhiSql: compilePhiSql
     };
 
     document.addEventListener("DOMContentLoaded", init);

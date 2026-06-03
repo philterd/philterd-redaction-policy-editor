@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<phileas.version>3.3.0</phileas.version>
+		<phisql.version>1.0.0</phisql.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -30,6 +31,12 @@
 			<groupId>ai.philterd</groupId>
 			<artifactId>phileas</artifactId>
 			<version>${phileas.version}</version>
+		</dependency>
+		<dependency>
+			<!-- PhiSQL reference compiler: compiles PhiSQL policy source to native Phileas policy JSON. -->
+			<groupId>ai.philterd</groupId>
+			<artifactId>phisql</artifactId>
+			<version>${phisql.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

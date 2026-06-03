@@ -51,6 +51,12 @@ public class PolicyEditorApplicationTests {
         return new HttpEntity<>(body, headers);
     }
 
+    private HttpEntity<String> textEntity(String body) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new HttpEntity<>(body, headers);
+    }
+
     @Test
     public void contextLoads() {
     }
@@ -143,6 +149,28 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("filteredText");
         assertThat(response.getBody()).contains("explanation");
+    }
+
+    @Test
+    public void shouldCompilePhiSqlToNativePolicy() {
+        final String phiSql = "POLICY ssn_only;\nREDACT SSN WITH MASK;";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/compile"), textEntity(phiSql), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"success\":true");
+        assertThat(response.getBody()).contains("ssn_only");
+        // The compiled policy JSON (carried as a string field) is the native Phileas shape.
+        assertThat(response.getBody()).contains("ssnFilterStrategies");
+        assertThat(response.getBody()).contains("MASK");
+    }
+
+    @Test
+    public void shouldReturnErrorsForInvalidPhiSql() {
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/compile"), textEntity("this is not valid phisql"), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"success\":false");
+        assertThat(response.getBody()).contains("errors");
     }
 
     @Test

@@ -22,6 +22,9 @@ import ai.philterd.phileas.services.context.DefaultContextService;
 import ai.philterd.phileas.services.disambiguation.vector.InMemoryVectorService;
 import ai.philterd.phileas.services.filters.filtering.PlainTextFilterService;
 import ai.philterd.phileas.services.strategies.AbstractFilterStrategy;
+import ai.philterd.phisql.CompileResult;
+import ai.philterd.phisql.Compiler;
+import ai.philterd.phisql.PhiSQL;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -69,6 +72,10 @@ public class PolicyController {
 
     private final SchemaService schemaService;
     private final Gson gson;
+
+    // Compiles PhiSQL policy source to native Phileas policy JSON. The compiler holds an immutable
+    // catalog and compiles statelessly per call, so a single instance is reused.
+    private final Compiler phiSqlCompiler = new Compiler();
 
     public PolicyController(final SchemaService schemaService) {
         this.schemaService = schemaService;
@@ -187,6 +194,29 @@ public class PolicyController {
     }
 
     /**
+     * Compiles a policy authored in PhiSQL into the native Phileas policy JSON the editor works with.
+     * The request body is PhiSQL source. On success the response carries the policy name/description
+     * from the {@code POLICY} declaration and the compiled policy JSON (as a string the UI parses and
+     * loads into the form). Parse/compile errors are returned in {@code errors}.
+     */
+    @PostMapping("/api/compile")
+    @ResponseBody
+    public CompileResponse compile(@RequestBody final String phiSql) {
+        if (phiSql == null || phiSql.isBlank()) {
+            return CompileResponse.error(List.of("The PhiSQL is empty."));
+        }
+        try {
+            final CompileResult result = phiSqlCompiler.compile(phiSql);
+            return CompileResponse.ok(result.policyName(), result.description(), result.toJsonString());
+        } catch (final PhiSQL.ParseException | Compiler.CompileException e) {
+            return CompileResponse.error(List.of(e.getMessage()));
+        } catch (final Exception e) {
+            LOGGER.error("Error compiling PhiSQL: {}", e.getMessage(), e);
+            return CompileResponse.error(List.of("Failed to compile PhiSQL: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Runs the live Phileas engine over the supplied text using the posted policy. The policy is
      * built entirely in the browser, so this endpoint simply deserializes and applies it. Only
      * available when the requested version matches the version the bundled Phileas runtime supports.
@@ -283,6 +313,51 @@ public class PolicyController {
 
         public String getExplanation() {
             return explanation;
+        }
+    }
+
+    /** Response for {@link #compile}. On success carries the compiled native policy JSON as a string. */
+    public static class CompileResponse {
+        private final boolean success;
+        private final String name;
+        private final String description;
+        private final String policy;
+        private final List<String> errors;
+
+        private CompileResponse(boolean success, String name, String description, String policy, List<String> errors) {
+            this.success = success;
+            this.name = name;
+            this.description = description;
+            this.policy = policy;
+            this.errors = errors;
+        }
+
+        static CompileResponse ok(String name, String description, String policy) {
+            return new CompileResponse(true, name, description, policy, List.of());
+        }
+
+        static CompileResponse error(List<String> errors) {
+            return new CompileResponse(false, null, null, null, errors);
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getPolicy() {
+            return policy;
+        }
+
+        public List<String> getErrors() {
+            return errors;
         }
     }
 }
