@@ -15,8 +15,8 @@
  <description>Philterd Redaction Policy Editor</description>
 	<properties>
 		<java.version>25</java.version>
-		<phileas.version>3.3.0</phileas.version>
-		<phisql.version>1.0.0</phisql.version>
+		<phileas.version>4.2.0</phileas.version>
+		<phisql.version>1.3.0</phisql.version>
 	</properties>
 	<dependencies>
 		<dependency>

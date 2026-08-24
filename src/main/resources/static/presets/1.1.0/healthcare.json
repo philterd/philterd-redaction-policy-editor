@@ -1,0 +1,31 @@
+{
+  "identifiers": {
+    "firstName": {
+      "firstNameFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "surname": {
+      "surnameFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "date": {
+      "dateFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "ssn": {
+      "ssnFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "phoneNumber": {
+      "phoneNumberFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "zipCode": {
+      "zipCodeFilterStrategy": [{ "strategy": "REDACT" }]
+    },
+    "emailAddress": {
+      "emailAddressFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "physicianName": {
+      "physicianNameFilterStrategies": [{ "strategy": "REDACT" }]
+    },
+    "hospital": {
+      "hospitalFilterStrategies": [{ "strategy": "REDACT" }]
+    }
+  }
+}

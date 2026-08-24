@@ -666,6 +666,13 @@
         }
     }
 
+    /** True when the version selector offers the given version. */
+    function hasVersionOption(version) {
+        const select = document.getElementById("schema-version-select");
+        if (!select) return false;
+        return Array.prototype.some.call(select.options, function (o) { return o.value === version; });
+    }
+
     // Reflect the selected schema version in the URL's ?version= param so the page is shareable.
     function updateVersionInUrl(version) {
         const url = new URL(window.location.href);
@@ -896,7 +903,7 @@
         if (panel) panel.classList.toggle("d-none");
     }
 
-    function showPhiSqlMessages(isError, messages) {
+    function showPhiSqlMessages(isError, messages, version) {
         const box = document.getElementById("phisql-messages");
         if (!box) return;
         box.innerHTML = "";
@@ -908,7 +915,8 @@
             (messages || []).forEach(function (m) { ul.appendChild(el("li", null, m)); });
             box.appendChild(ul);
         } else {
-            box.textContent = "Compiled successfully. The policy has been loaded into the editor below.";
+            box.textContent = "Compiled successfully" + (version ? " to schema version " + version : "") +
+                ". The policy has been loaded into the editor below.";
         }
     }
 
@@ -922,12 +930,26 @@
             body: source
         }).then(function (r) { return r.json(); })
             .then(function (res) {
-                if (res.success) {
-                    loadPolicyObject(JSON.parse(res.policy));
-                    showPhiSqlMessages(false, []);
-                } else {
+                if (!res.success) {
                     showPhiSqlMessages(true, res.errors || ["Unknown compile error."]);
+                    return;
                 }
+                const policy = JSON.parse(res.policy);
+                const target = res.schemaVersion;
+                // PhiSQL compiles to one specific schema version. If the form is on a different
+                // version, switch to the target so the policy renders against its own schema.
+                if (target && target !== currentVersion && hasVersionOption(target)) {
+                    const select = document.getElementById("schema-version-select");
+                    select.value = target;
+                    updateVersionInUrl(target);
+                    loadSchema(target).then(function () {
+                        loadPolicyObject(policy);
+                        showPhiSqlMessages(false, [], target);
+                    });
+                    return;
+                }
+                loadPolicyObject(policy);
+                showPhiSqlMessages(false, [], target);
             })
             .catch(function (err) {
                 showPhiSqlMessages(true, [err.message]);

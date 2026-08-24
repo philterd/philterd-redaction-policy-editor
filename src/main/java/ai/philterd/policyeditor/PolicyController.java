@@ -25,6 +25,7 @@ import ai.philterd.phileas.services.strategies.AbstractFilterStrategy;
 import ai.philterd.phisql.CompileResult;
 import ai.philterd.phisql.Compiler;
 import ai.philterd.phisql.PhiSQL;
+import ai.philterd.phisql.PolicySchema;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -39,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.http.MediaType;
@@ -69,6 +71,10 @@ public class PolicyController {
 
     @Autowired(required = false)
     private GitProperties gitProperties;
+
+    // Filled in at build time from the phisql.version POM property.
+    @Value("${phisql.version:unknown}")
+    private String phiSqlVersion;
 
     private final SchemaService schemaService;
     private final Gson gson;
@@ -155,6 +161,7 @@ public class PolicyController {
         model.addAttribute("supportedTestVersion", schemaService.getSupportedTestVersion());
         model.addAttribute("version", (buildProperties != null) ? buildProperties.getVersion() : "unknown");
         model.addAttribute("commit", (gitProperties != null) ? gitProperties.getShortCommitId() : "unknown");
+        model.addAttribute("phiSqlVersion", phiSqlVersion);
 
         return "index";
     }
@@ -220,15 +227,23 @@ public class PolicyController {
 
         // Validate the compiled policy against the schema before accepting it, so the editor never loads
         // a non-conforming policy. PhiSQL compiles to a specific schema version; validate against that.
-        final String schemaVersion = ai.philterd.phisql.PolicySchema.getSupportedSchemaVersion();
-        if (schemaService.hasVersion(schemaVersion)) {
-            final List<String> messages = schemaService.validate(schemaVersion, policyJson);
-            if (!messages.isEmpty()) {
-                return CompileResponse.error(messages);
-            }
+        // If that version is not bundled the policy cannot be checked at all, and the editor has no
+        // schema to render it with, so fail rather than pass an unvalidated policy through.
+        final String schemaVersion = PolicySchema.getSupportedSchemaVersion();
+        if (!schemaService.hasVersion(schemaVersion)) {
+            LOGGER.error("The PhiSQL compiler targets schema version {}, which is not bundled. Bundled versions: {}",
+                    schemaVersion, schemaService.getVersions());
+            return CompileResponse.error(List.of("The PhiSQL compiler targets redaction policy schema version "
+                    + schemaVersion + ", which this build does not bundle. Bundled versions: "
+                    + String.join(", ", schemaService.getVersions()) + "."));
         }
 
-        return CompileResponse.ok(result.policyName(), result.description(), policyJson);
+        final List<String> messages = schemaService.validate(schemaVersion, policyJson);
+        if (!messages.isEmpty()) {
+            return CompileResponse.error(messages);
+        }
+
+        return CompileResponse.ok(result.policyName(), result.description(), policyJson, schemaVersion);
     }
 
     /**
@@ -337,22 +352,26 @@ public class PolicyController {
         private final String name;
         private final String description;
         private final String policy;
+        // The schema version the PhiSQL compiler targets, so the UI can switch the form to it.
+        private final String schemaVersion;
         private final List<String> errors;
 
-        private CompileResponse(boolean success, String name, String description, String policy, List<String> errors) {
+        private CompileResponse(boolean success, String name, String description, String policy,
+                                String schemaVersion, List<String> errors) {
             this.success = success;
             this.name = name;
             this.description = description;
             this.policy = policy;
+            this.schemaVersion = schemaVersion;
             this.errors = errors;
         }
 
-        static CompileResponse ok(String name, String description, String policy) {
-            return new CompileResponse(true, name, description, policy, List.of());
+        static CompileResponse ok(String name, String description, String policy, String schemaVersion) {
+            return new CompileResponse(true, name, description, policy, schemaVersion, List.of());
         }
 
         static CompileResponse error(List<String> errors) {
-            return new CompileResponse(false, null, null, null, errors);
+            return new CompileResponse(false, null, null, null, null, errors);
         }
 
         public boolean isSuccess() {
@@ -369,6 +388,10 @@ public class PolicyController {
 
         public String getPolicy() {
             return policy;
+        }
+
+        public String getSchemaVersion() {
+            return schemaVersion;
         }
 
         public List<String> getErrors() {
