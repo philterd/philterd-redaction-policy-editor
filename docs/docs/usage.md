@@ -47,6 +47,13 @@ PII operations, instead of built up through the form:
    schema, and loaded into the form below, where it can be edited, tested, and downloaded like any
    other policy. Compiling replaces what is currently in the form.
 
+A policy can also go the other way: **Copy PhiSQL** and **Download PhiSQL** in the actions below the
+form write the current policy out as PhiSQL, whether it was built in the form, uploaded, loaded from a
+preset, or compiled from PhiSQL to begin with. The PhiSQL is verified before you get it: the editor
+compiles what it generated and compares the result to the policy in the form, so the file you save
+means the same thing as the policy you built. If some part of the policy has no PhiSQL form, the
+editor says which part instead of handing over source that means something else.
+
 Parse and compile errors are listed under the panel with the line and column they occurred at. The
 compiled policy is rejected if it does not conform to the schema, so a policy that loads into the
 form is one the editor could have produced itself.
@@ -70,8 +77,10 @@ Detection is probabilistic. Review the highlighted output against your own data 
 ## Exporting and Importing
 
 - **Generate Policy**: Click this to see the JSON representation of your current configuration.
-- **Copy to Clipboard**: Quickly copy the JSON for use in your application.
-- **Download Policy**: Save the policy as a `.json` file.
+- **Copy JSON**: Quickly copy the JSON for use in your application.
+- **Download JSON**: Save the policy as a `.json` file.
+- **Copy PhiSQL** and **Download PhiSQL**: Save the same policy as PhiSQL, verified to compile back to
+  it. See [Authoring with PhiSQL](#authoring-with-phisql).
 - **Load Preset**: Quickly populate the editor with pre-configured filters for specific domains. Presets are intended to be built upon and customized for your use. They are not intended to be comprehensive policies for any industry. Review them carefully and thoroughly before use.
     - **Legal**: Includes filters for common legal entities like names, cities, states, street addresses, and phone numbers.
     - **Financial**: Focuses on financial identifiers such as credit card numbers, IBAN codes, bank routing numbers, and bitcoin addresses.

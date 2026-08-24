@@ -72,14 +72,16 @@ public class PolicyController {
     private GitProperties gitProperties;
 
     private final SchemaService schemaService;
+    private final PhiSqlService phiSqlService;
     private final Gson gson;
 
     // Compiles PhiSQL policy source to native Phileas policy JSON. The compiler holds an immutable
     // catalog and compiles statelessly per call, so a single instance is reused.
     private final Compiler phiSqlCompiler = new Compiler();
 
-    public PolicyController(final SchemaService schemaService) {
+    public PolicyController(final SchemaService schemaService, final PhiSqlService phiSqlService) {
         this.schemaService = schemaService;
+        this.phiSqlService = phiSqlService;
         this.gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -240,6 +242,29 @@ public class PolicyController {
     }
 
     /**
+     * Converts the policy in the editor back into PhiSQL.
+     *
+     * <p>The PhiSQL is verified before it is returned: it is compiled and the result compared to the
+     * policy that was posted. A policy with a construct PhiSQL cannot express is reported as errors
+     * rather than exported as source that means something else.</p>
+     */
+    @PostMapping("/api/phisql")
+    @ResponseBody
+    public PhiSqlResponse toPhiSql(@RequestBody final PhiSqlRequest request) {
+        if (request.getPolicy() == null) {
+            return PhiSqlResponse.error(List.of("There is no policy to convert."));
+        }
+
+        final PhiSqlService.Result result =
+                phiSqlService.toPhiSql(request.getPolicy().toString(), request.getName());
+
+        if (!result.faithful()) {
+            return PhiSqlResponse.error(result.differences());
+        }
+        return PhiSqlResponse.ok(result.phiSql(), PhiSqlService.fileNameFor(request.getName()));
+    }
+
+    /**
      * Runs the live Phileas engine over the supplied text using the posted policy. The policy is
      * built entirely in the browser, so this endpoint simply deserializes and applies it. Only
      * available when the requested version matches the version the bundled Phileas runtime supports.
@@ -367,6 +392,67 @@ public class PolicyController {
 
         public String getExplanation() {
             return explanation;
+        }
+    }
+
+    /** Request for {@link #toPhiSql}: the policy to convert and the name to declare in it. */
+    public static class PhiSqlRequest {
+        private JsonNode policy;
+        private String name;
+
+        public JsonNode getPolicy() {
+            return policy;
+        }
+
+        public void setPolicy(JsonNode policy) {
+            this.policy = policy;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    /** Response for {@link #toPhiSql}. On success carries the verified PhiSQL and a file name. */
+    public static class PhiSqlResponse {
+        private final boolean success;
+        private final String phiSql;
+        private final String fileName;
+        private final List<String> errors;
+
+        private PhiSqlResponse(boolean success, String phiSql, String fileName, List<String> errors) {
+            this.success = success;
+            this.phiSql = phiSql;
+            this.fileName = fileName;
+            this.errors = errors;
+        }
+
+        static PhiSqlResponse ok(String phiSql, String fileName) {
+            return new PhiSqlResponse(true, phiSql, fileName, List.of());
+        }
+
+        static PhiSqlResponse error(List<String> errors) {
+            return new PhiSqlResponse(false, null, null, errors);
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getPhiSql() {
+            return phiSql;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public List<String> getErrors() {
+            return errors;
         }
     }
 

@@ -180,17 +180,8 @@ const tests = {
     }
 };
 
-let failed = 0;
-Object.keys(tests).forEach(function (name) {
-    try {
-        tests[name]();
-        console.log('  ok   ' + name);
-    } catch (e) {
-        failed++;
-        console.log('  FAIL ' + name);
-        console.log('       ' + e.message);
-    }
-});
+module.exports = { name: 'highlight', tests: tests };
 
-console.log((Object.keys(tests).length - failed) + '/' + Object.keys(tests).length + ' highlight tests passed');
-process.exit(failed === 0 ? 0 : 1);
+if (require.main === module) {
+    process.exit(require('./run').runSuite(module.exports) === 0 ? 0 : 1);
+}

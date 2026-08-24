@@ -30,6 +30,7 @@
     let rootSchema = null;     // the full schema document for the selected version
     let defs = {};             // $defs of rootSchema
     let currentVersion = null;
+    let policyName = null;      // from the last PhiSQL compile, reused when exporting back to PhiSQL
     let supportedTestVersion = null;
     let rootField = null;      // the live form model { get, set }
 
@@ -306,11 +307,29 @@
         };
     }
 
+    /**
+     * The value a newly added item starts with.
+     *
+     * A strategy card shows the schema's default strategy in its dropdown, but an untouched control
+     * reports no value, so without seeding it the card looks like "REDACT" and serializes to nothing.
+     * A strategy object with no strategy is meaningless, and a filter whose only strategy serializes
+     * to nothing disappears from the policy, so the visible default has to be a real value. Only the
+     * strategy itself is seeded: the other defaulted properties stay out of the policy unless the
+     * author sets them, which keeps the generated JSON to what was actually chosen.
+     */
+    function seedFor(itemSchema) {
+        const schema = normalize(itemSchema);
+        const property = schema.properties && schema.properties.strategy;
+        const strategy = property && normalize(property).default;
+        return strategy === undefined ? undefined : { strategy: strategy };
+    }
+
     // A repeatable list of objects (e.g. strategies, dictionaries, bounding boxes).
     function buildObjectArray(key, schema) {
         const itemSchema = normalize(schema.items);
         const itemLabel = titleCase(key).replace(/s$/, "");
         const autoSeed = /strateg/i.test(key); // start filters with one strategy, matching old UX
+        const seed = autoSeed ? seedFor(itemSchema) : undefined;
 
         const container = el("div", "mb-2");
         container.appendChild(el("div", "fw-semibold mb-1", titleCase(key)));
@@ -341,12 +360,13 @@
 
         const addBtn = el("button", "btn btn-outline-secondary btn-sm", "+ Add " + itemLabel);
         addBtn.type = "button";
-        addBtn.addEventListener("click", function () { addItem(undefined); });
+        addBtn.addEventListener("click", function () { addItem(seed); });
         container.appendChild(addBtn);
 
         return {
             el: container,
             _autoSeed: autoSeed,
+            _seed: seed,
             addItem: addItem,
             get: function () {
                 const out = [];
@@ -440,7 +460,7 @@
             fields[k] = f;
             parent.appendChild(f.el);
             if (f._autoSeed && f.addItem) {
-                f.addItem(undefined);
+                f.addItem(f._seed);
             }
         }
 
@@ -754,6 +774,51 @@
         URL.revokeObjectURL(a.href);
     }
 
+    /**
+     * Converts the policy to PhiSQL on the server, which verifies the conversion by compiling what
+     * it produced and comparing it to the policy before returning it.
+     */
+    function toPhiSql() {
+        return fetch("/api/phisql", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ policy: JSON.parse(currentPolicyJson()), name: policyName })
+        }).then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success) {
+                    throw new Error("This policy cannot be written as PhiSQL:\n\n"
+                        + (res.errors || []).join("\n"));
+                }
+                return res;
+            });
+    }
+
+    function copyAsPhiSql() {
+        toPhiSql().then(function (res) {
+            return navigator.clipboard.writeText(res.phiSql).then(function () {
+                const btn = document.getElementById("copyPhiSqlBtn");
+                if (btn) {
+                    const t = btn.textContent;
+                    btn.textContent = "Copied!";
+                    setTimeout(function () { btn.textContent = t; }, 1500);
+                }
+            });
+        }).catch(function (err) { alert(err.message); });
+    }
+
+    function downloadPhiSql() {
+        toPhiSql().then(function (res) {
+            const blob = new Blob([res.phiSql], { type: "text/plain" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = res.fileName || "policy.phisql";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }).catch(function (err) { alert(err.message); });
+    }
+
     function resetEditor() {
         renderForm();
         clearOutput();
@@ -970,6 +1035,7 @@
                         ", but this editor authors version " + currentVersion + "."]);
                     return;
                 }
+                policyName = res.name || policyName;
                 loadPolicyObject(policy);
                 showPhiSqlMessages(false, [], target);
             })
@@ -982,6 +1048,8 @@
         generatePolicy: generatePolicy,
         copyToClipboard: copyToClipboard,
         downloadPolicy: downloadPolicy,
+        copyAsPhiSql: copyAsPhiSql,
+        downloadPhiSql: downloadPhiSql,
         resetEditor: resetEditor,
         handleFileUpload: handleFileUpload,
         showPresetDisclaimer: showPresetDisclaimer,

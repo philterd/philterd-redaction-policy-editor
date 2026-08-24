@@ -20,7 +20,7 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
 - **Policy Management**: Load presets for common use cases (Legal, Financial, Healthcare), upload
-  existing JSON policies to edit, and download or copy generated policies.
+  existing JSON policies to edit, and download or copy generated policies as JSON or as PhiSQL.
 - **Policy Testing**: Test your policies against sample text directly in the browser and view detailed
   redaction explanations. Testing runs the bundled Phileas engine, so it is available for the schema
   version that engine supports (see `phileas.supported-schema-version`).

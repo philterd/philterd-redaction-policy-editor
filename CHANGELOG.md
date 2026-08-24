@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the explanation. Values that were detected but left in the clear are highlighted differently.
 - Added a "Load Sample Text" menu to the Test Policy input, offering four synthetic documents so a
   policy can be tried without entering real data.
+- Added "Copy PhiSQL" and "Download PhiSQL", which write the current policy out as PhiSQL. The output
+  is verified before it is offered: the editor compiles what it generated and compares the result to
+  the policy, and reports which part of the policy has no PhiSQL form rather than exporting source
+  that means something else. The existing JSON actions are now labelled "Copy JSON" and
+  "Download JSON".
 
 ### Changed
 - The editor now authors a single redaction policy schema version, the one the bundled Phileas
@@ -37,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the policy schema version selector and the `?version=` URL parameter.
 
 ### Fixed
+- A newly added filter strategy now carries the strategy shown in its dropdown. The control reported
+  no value until it was changed, so a filter left on the default serialized without a strategy and
+  disappeared from the generated policy.
 - `/api/compile` now fails with an error when the schema version PhiSQL targets is not bundled,
   instead of returning a policy that was never validated.
 - Testing a policy that uses the PhEye filter now explains that model-backed detection runs in a

@@ -85,8 +85,8 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<!-- The highlight rendering in policy-form.js is JavaScript, so its tests run under
-				     Node during the test phase. See skipJsTests above for skipping them. -->
+				<!-- Parts of policy-form.js are only testable as JavaScript, so those suites run
+				     under Node during the test phase. See skipJsTests above for skipping them. -->
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>3.5.0</version>
@@ -101,7 +101,7 @@
 							<skip>${skipJsTests}</skip>
 							<executable>node</executable>
 							<arguments>
-								<argument>${project.basedir}/src/test/js/highlight.test.js</argument>
+								<argument>${project.basedir}/src/test/js/run.js</argument>
 							</arguments>
 						</configuration>
 					</execution>

@@ -167,8 +167,10 @@
             <div class="mt-5 pt-4 border-top">
                 <button type="button" class="btn btn-primary" onclick="PolicyEditor.generatePolicy()">Generate Policy</button>
                 <button type="button" class="btn btn-outline-primary ms-2" id="testPolicyBtn" onclick="PolicyEditor.showTestSection()">Test Policy</button>
-                <button type="button" class="btn btn-outline-info ms-2" id="copyBtn" onclick="PolicyEditor.copyToClipboard()">Copy to Clipboard</button>
-                <button type="button" class="btn btn-outline-success ms-2" onclick="PolicyEditor.downloadPolicy()">Download Policy</button>
+                <button type="button" class="btn btn-outline-info ms-2" id="copyBtn" onclick="PolicyEditor.copyToClipboard()">Copy JSON</button>
+                <button type="button" class="btn btn-outline-success ms-2" onclick="PolicyEditor.downloadPolicy()">Download JSON</button>
+                <button type="button" class="btn btn-outline-info ms-2" id="copyPhiSqlBtn" onclick="PolicyEditor.copyAsPhiSql()">Copy PhiSQL</button>
+                <button type="button" class="btn btn-outline-success ms-2" onclick="PolicyEditor.downloadPhiSql()">Download PhiSQL</button>
             </div>
             <div id="testVersionNote" class="form-text text-warning d-none"></div>
 

@@ -137,6 +137,11 @@ public class PolicyEditorApplicationTests {
         // The test output is tabbed: redacted text with highlights, and the explain response.
         assertThat(response.getBody()).contains("test-output-tabs");
         assertThat(response.getBody()).contains("loadSampleBtn");
+        // Both formats are offered, and each button says which one it produces.
+        assertThat(response.getBody()).contains("Download JSON");
+        assertThat(response.getBody()).contains("Download PhiSQL");
+        assertThat(response.getBody()).contains("Copy JSON");
+        assertThat(response.getBody()).contains("Copy PhiSQL");
         assertThat(response.getBody()).contains("redacted-pane");
         assertThat(response.getBody()).contains("explanation-pane");
         assertThat(response.getBody()).doesNotContain("showExplanationBtn");
@@ -332,6 +337,50 @@ public class PolicyEditorApplicationTests {
         // The span carries ignored: true, and it is absent from appliedSpans. The editor keys off
         // the arrays rather than this flag, because an ignored span still reports applied: true.
         assertThat(response.getBody()).contains("\\\"ignored\\\": true");
+    }
+
+    @Test
+    public void shouldExportAPolicyAsPhiSqlThroughTheApi() {
+        final String body = "{\"name\":\"clinic_policy\",\"policy\":{\"identifiers\":{" +
+                "\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"MASK\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/phisql"), jsonEntity(body), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"success\":true");
+        assertThat(response.getBody()).contains("REDACT SSN WITH MASK;");
+        assertThat(response.getBody()).contains("\"fileName\":\"clinic_policy.phisql\"");
+    }
+
+    @Test
+    public void exportedPhiSqlShouldCompileBackThroughTheCompileEndpoint() {
+        // The round trip the export promises, exercised through the two endpoints a user goes
+        // through: export to PhiSQL, then paste it back into the authoring panel.
+        final String policy = "{\"identifiers\":{\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"MASK\"}]}," +
+                "\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}";
+        ResponseEntity<Map> exported = restTemplate.postForEntity(getUrl("/api/phisql"),
+                jsonEntity("{\"name\":\"round_trip\",\"policy\":" + policy + "}"), Map.class);
+        final String phiSql = (String) exported.getBody().get("phiSql");
+
+        ResponseEntity<Map> compiled = restTemplate.postForEntity(
+                getUrl("/api/compile"), textEntity(phiSql), Map.class);
+
+        assertThat(compiled.getBody().get("success")).isEqualTo(true);
+        assertThat(compiled.getBody().get("name")).isEqualTo("round_trip");
+        assertThat((String) compiled.getBody().get("policy")).contains("ssnFilterStrategies");
+        assertThat((String) compiled.getBody().get("policy")).contains("ageFilterStrategies");
+    }
+
+    @Test
+    public void shouldReportAPolicyThatCannotBeWrittenAsPhiSql() {
+        final String body = "{\"name\":\"p\",\"policy\":{\"identifiers\":{\"identifiers\":" +
+                "[{\"classification\":\"account\",\"identifierFilterStrategies\":" +
+                "[{\"strategy\":\"LAST_4\"}]}]}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/phisql"), jsonEntity(body), String.class);
+
+        assertThat(response.getBody()).contains("\"success\":false");
+        assertThat(response.getBody()).contains("custom identifier");
     }
 
     @Test
