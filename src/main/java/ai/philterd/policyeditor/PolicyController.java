@@ -205,15 +205,30 @@ public class PolicyController {
         if (phiSql == null || phiSql.isBlank()) {
             return CompileResponse.error(List.of("The PhiSQL is empty."));
         }
+
+        final CompileResult result;
         try {
-            final CompileResult result = phiSqlCompiler.compile(phiSql);
-            return CompileResponse.ok(result.policyName(), result.description(), result.toJsonString());
+            result = phiSqlCompiler.compile(phiSql);
         } catch (final PhiSQL.ParseException | Compiler.CompileException e) {
             return CompileResponse.error(List.of(e.getMessage()));
         } catch (final Exception e) {
             LOGGER.error("Error compiling PhiSQL: {}", e.getMessage(), e);
             return CompileResponse.error(List.of("Failed to compile PhiSQL: " + e.getMessage()));
         }
+
+        final String policyJson = result.toJsonString();
+
+        // Validate the compiled policy against the schema before accepting it, so the editor never loads
+        // a non-conforming policy. PhiSQL compiles to a specific schema version; validate against that.
+        final String schemaVersion = ai.philterd.phisql.PolicySchema.getSupportedSchemaVersion();
+        if (schemaService.hasVersion(schemaVersion)) {
+            final List<String> messages = schemaService.validate(schemaVersion, policyJson);
+            if (!messages.isEmpty()) {
+                return CompileResponse.error(messages);
+            }
+        }
+
+        return CompileResponse.ok(result.policyName(), result.description(), policyJson);
     }
 
     /**
