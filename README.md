@@ -12,10 +12,10 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Schema-Driven**: The entire form is generated from the official redaction policy
   [JSON Schema](https://github.com/philterd/phisql/tree/main/schema). Generated policies are
   validated against the schema, so they always conform.
-- **Multiple Schema Versions**: Select which policy schema version to author. The editor bundles
-  schema versions 1.0.0, 1.1.0, and 1.2.0, one folder per version under
-  `src/main/resources/schemas/<version>/`, and defaults to the newest. Adding a new version is a
-  matter of dropping in its schema file, with no code changes required.
+- **One Schema Version**: The editor authors the single policy schema version that the bundled
+  Phileas runtime can run, so every policy it produces is one the engine understands. The schema
+  lives at `src/main/resources/schemas/<version>/`, and moving to a new version is a matter of
+  swapping that file (alongside the matching Phileas and PhiSQL versions), with no code changes.
 - **Dynamic Filter Selection**: Choose from over 30 PII/PHI filter types.
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
@@ -40,8 +40,7 @@ The Philterd Policy Editor can be configured using environment variables:
 The schema version that the **Test Policy** feature can run is controlled by the
 `phileas.supported-schema-version` application property (overridable with the
 `PHILEAS_SUPPORTEDSCHEMAVERSION` environment variable). It must match the schema version supported by
-the bundled Phileas runtime. Authoring and downloading policies works for every bundled schema
-version regardless of this setting.
+the bundled Phileas runtime, which is also the version the editor authors.
 
 ## Health and metrics
 
@@ -60,21 +59,22 @@ Override either property to change what is published.
 `docker-compose.yml` uses `/actuator/health` as the container healthcheck, so `docker compose ps`
 reports the application healthy only once it answers with an `UP` status.
 
-## Schema versions
+## Schema version
 
-The editor bundles the redaction policy schemas copied verbatim from
-[philterd/phisql](https://github.com/philterd/phisql/tree/main/schema) and authors against the newest
-by default. Which version each bundled dependency uses:
+The editor authors one redaction policy schema version, and it is the version the bundled Phileas
+runtime can run, so a policy built here can always be tested here. The schema is copied verbatim from
+[philterd/phisql](https://github.com/philterd/phisql/tree/main/schema).
 
 | Bundled dependency | Version | Redaction policy schema |
 |--------------------|---------|-------------------------|
-| PhiSQL (Author with PhiSQL) | 1.3.0 | 1.2.0 |
 | Phileas (Test Policy) | 4.2.0 | 1.1.0 |
+| PhiSQL (Author with PhiSQL) | 1.2.0 | 1.1.0 |
 
-Each Phileas release understands exactly one schema version, so **Test Policy** is available for
-schema 1.1.0 only. Policies compiled from PhiSQL target schema 1.2.0 and can be authored, validated,
-and downloaded, but cannot be tested in the browser until a Phileas release that supports 1.2.0 is
-bundled.
+All three move together. Advancing the schema means bumping Phileas to a release that supports the
+new version, bumping PhiSQL to the release that compiles to it, swapping the bundled schema file, and
+setting `phileas.supported-schema-version` to match. Exactly one schema must be bundled: the
+application fails to start if it finds none or more than one, because the form has no way to choose
+between two.
 
 ## Getting Started
 

@@ -43,9 +43,9 @@ import java.util.TreeMap;
  * Discovers, caches, and validates against the redaction policy JSON schemas bundled in this
  * application under {@code classpath:schemas/<version>/redaction-policy-schema.json}.
  *
- * <p>Each Phileas build understands exactly one schema version, but the editor bundles every
- * version it can author so the user can select between them. This service is the source of truth
- * for which versions are available.</p>
+ * <p>Each Phileas build understands exactly one schema version, and the editor authors that one
+ * version, so exactly one schema is bundled. This service is the source of truth for which version
+ * that is.</p>
  */
 @Service
 public class SchemaService {
@@ -90,22 +90,21 @@ public class SchemaService {
         }
 
         if (rawSchemasByVersion.isEmpty()) {
-            LOGGER.error("No redaction policy schemas were found on the classpath ({})", SCHEMA_LOCATION_PATTERN);
+            throw new IllegalStateException("No redaction policy schema was found on the classpath ("
+                    + SCHEMA_LOCATION_PATTERN + ")");
+        }
+
+        // The editor authors a single schema version and has no way to choose between two, so a
+        // second bundled schema is a packaging mistake rather than a runtime choice.
+        if (rawSchemasByVersion.size() > 1) {
+            throw new IllegalStateException("Exactly one redaction policy schema must be bundled, found "
+                    + rawSchemasByVersion.keySet());
         }
     }
 
-    /** All available schema versions, ascending by semantic version. */
-    public List<String> getVersions() {
-        return new ArrayList<>(rawSchemasByVersion.keySet());
-    }
-
-    /** The newest available schema version, or {@code null} if none are bundled. */
-    public String getLatestVersion() {
-        String latest = null;
-        for (final String version : rawSchemasByVersion.keySet()) {
-            latest = version; // ascending order, so the last key is the newest
-        }
-        return latest;
+    /** The bundled schema version. */
+    public String getVersion() {
+        return rawSchemasByVersion.keySet().iterator().next();
     }
 
     /** The schema version supported by the live Phileas runtime (used to gate the Test feature). */

@@ -666,69 +666,20 @@
         }
     }
 
-    /** True when the version selector offers the given version. */
-    function hasVersionOption(version) {
-        const select = document.getElementById("schema-version-select");
-        if (!select) return false;
-        return Array.prototype.some.call(select.options, function (o) { return o.value === version; });
-    }
-
-    // Reflect the selected schema version in the URL's ?version= param so the page is shareable.
-    function updateVersionInUrl(version) {
-        const url = new URL(window.location.href);
-        url.searchParams.set("version", version);
-        window.history.replaceState(null, "", url);
-    }
-
     function init() {
         return fetch("/api/schemas")
             .then(function (r) { return r.json(); })
             .then(function (info) {
                 supportedTestVersion = info.supportedTestVersion;
-                const versions = info.versions || [];
-
-                // Allow ?version=<x> in the URL to choose the schema version on page load.
-                // An unknown/missing value falls back to the latest version.
-                const requested = new URLSearchParams(window.location.search).get("version");
-                const requestedIsValid = requested && versions.indexOf(requested) !== -1;
-                const initial = requestedIsValid ? requested : (info.latest || versions[0]);
-
-                const notice = document.getElementById("version-notice");
-                if (notice) {
-                    if (requested && !requestedIsValid) {
-                        notice.textContent = "Schema version \"" + requested +
-                            "\" is not available. Using version " + initial +
-                            " instead. Available versions: " + versions.join(", ") + ".";
-                        notice.classList.remove("d-none");
-                    } else {
-                        notice.classList.add("d-none");
-                    }
-                }
-
-                const select = document.getElementById("schema-version-select");
-                select.innerHTML = "";
-                versions.forEach(function (v) {
-                    const o = el("option", null, v + (v === info.supportedTestVersion ? " (testable)" : ""));
-                    o.value = v;
-                    if (v === initial) o.selected = true;
-                    select.appendChild(o);
-                });
-                select.addEventListener("change", function () {
-                    if (notice) notice.classList.add("d-none");
-                    updateVersionInUrl(select.value);
-                    loadSchema(select.value);
-                });
-                if (initial) {
-                    updateVersionInUrl(initial);
-                    return loadSchema(initial);
-                }
+                if (!info.version) throw new Error("no policy schema is bundled");
+                return loadSchema(info.version);
             })
             .catch(function (err) {
                 console.error(err);
                 const filtersRoot = document.getElementById("filters-root");
                 if (filtersRoot) {
                     filtersRoot.appendChild(el("div", "alert alert-danger",
-                        "Failed to load policy schemas: " + err.message));
+                        "Failed to load the policy schema: " + err.message));
                 }
             });
     }
@@ -936,16 +887,12 @@
                 }
                 const policy = JSON.parse(res.policy);
                 const target = res.schemaVersion;
-                // PhiSQL compiles to one specific schema version. If the form is on a different
-                // version, switch to the target so the policy renders against its own schema.
-                if (target && target !== currentVersion && hasVersionOption(target)) {
-                    const select = document.getElementById("schema-version-select");
-                    select.value = target;
-                    updateVersionInUrl(target);
-                    loadSchema(target).then(function () {
-                        loadPolicyObject(policy);
-                        showPhiSqlMessages(false, [], target);
-                    });
+                // The compiler targets one schema version and the editor authors one. A mismatch
+                // means the build is inconsistent, so say so rather than render the policy against
+                // a schema it was not compiled for.
+                if (target && target !== currentVersion) {
+                    showPhiSqlMessages(true, ["The PhiSQL compiler targets schema version " + target +
+                        ", but this editor authors version " + currentVersion + "."]);
                     return;
                 }
                 loadPolicyObject(policy);

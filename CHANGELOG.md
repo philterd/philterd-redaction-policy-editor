@@ -12,21 +12,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `CUSTOM_FOOTER_FILE` environment variable to allow inserting custom HTML into the page footer.
 - Updated `docker-compose.yml` with examples for using `CUSTOM_HEADER_FILE` and `CUSTOM_FOOTER_FILE` with mounts.
 - Added a "Fork on GitHub" badge to the index page.
-- Added version number on page.
-- Added the bundled PhiSQL version to the version line on the page.
-- Added redaction policy schema versions 1.1.0 and 1.2.0. The version selector offers 1.0.0, 1.1.0,
-  and 1.2.0 and defaults to the newest.
+- Added version number on page, alongside the policy schema version the editor authors.
+- Added redaction policy schema version 1.1.0.
 - Added Spring Boot Actuator with `/actuator/health` and `/actuator/prometheus`. Only those two
   endpoints are exposed, and the discovery index at `/actuator` is disabled.
 - Added a container healthcheck to `docker-compose.yml` that requires an `UP` health status.
 
 ### Changed
-- Upgraded PhiSQL to 1.3.0, which compiles to redaction policy schema 1.2.0.
-- Upgraded Phileas to 4.2.0 and set `phileas.supported-schema-version` to 1.1.0, so **Test Policy**
-  now runs against schema 1.1.0.
-- Re-synced the bundled 1.0.0 schema with the canonical schema in `philterd/phisql`: the crypto
-  settings no longer require an `iv`, because `CRYPTO_REPLACE` generates a per-value AES-GCM nonce.
+- The editor now authors a single redaction policy schema version, the one the bundled Phileas
+  runtime can run, so every policy it produces can be tested in the browser. The policy schema
+  version dropdown has been removed, and the version is shown on the page instead. The application
+  fails to start unless exactly one schema is bundled.
+- Upgraded Phileas to 4.2.0 and PhiSQL to 1.2.0. Both work with redaction policy schema 1.1.0, which
+  replaces the previously bundled 1.0.0.
+- The bundled schema is copied verbatim from `philterd/phisql`: the crypto settings no longer require
+  an `iv`, because `CRYPTO_REPLACE` generates a per-value AES-GCM nonce.
 - Building with Java 25, which the released PhiSQL artifacts require.
+
+### Removed
+- Removed the policy schema version selector and the `?version=` URL parameter.
 
 ### Fixed
 - `/api/compile` now fails with an error when the schema version PhiSQL targets is not bundled,

@@ -40,7 +40,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.http.MediaType;
@@ -71,10 +70,6 @@ public class PolicyController {
 
     @Autowired(required = false)
     private GitProperties gitProperties;
-
-    // Filled in at build time from the phisql.version POM property.
-    @Value("${phisql.version:unknown}")
-    private String phiSqlVersion;
 
     private final SchemaService schemaService;
     private final Gson gson;
@@ -156,23 +151,20 @@ public class PolicyController {
             }
         }
 
-        model.addAttribute("schemaVersions", schemaService.getVersions());
-        model.addAttribute("latestSchemaVersion", schemaService.getLatestVersion());
+        model.addAttribute("schemaVersion", schemaService.getVersion());
         model.addAttribute("supportedTestVersion", schemaService.getSupportedTestVersion());
         model.addAttribute("version", (buildProperties != null) ? buildProperties.getVersion() : "unknown");
         model.addAttribute("commit", (gitProperties != null) ? gitProperties.getShortCommitId() : "unknown");
-        model.addAttribute("phiSqlVersion", phiSqlVersion);
 
         return "index";
     }
 
-    /** Lists the schema versions the editor can author, plus which one the Test feature supports. */
+    /** Reports the schema version the editor authors, plus the version the Test feature can run. */
     @GetMapping("/api/schemas")
     @ResponseBody
     public Map<String, Object> schemas() {
         final Map<String, Object> response = new LinkedHashMap<>();
-        response.put("versions", schemaService.getVersions());
-        response.put("latest", schemaService.getLatestVersion());
+        response.put("version", schemaService.getVersion());
         response.put("supportedTestVersion", schemaService.getSupportedTestVersion());
         return response;
     }
@@ -231,11 +223,10 @@ public class PolicyController {
         // schema to render it with, so fail rather than pass an unvalidated policy through.
         final String schemaVersion = PolicySchema.getSupportedSchemaVersion();
         if (!schemaService.hasVersion(schemaVersion)) {
-            LOGGER.error("The PhiSQL compiler targets schema version {}, which is not bundled. Bundled versions: {}",
-                    schemaVersion, schemaService.getVersions());
+            LOGGER.error("The PhiSQL compiler targets schema version {}, but this build bundles {}",
+                    schemaVersion, schemaService.getVersion());
             return CompileResponse.error(List.of("The PhiSQL compiler targets redaction policy schema version "
-                    + schemaVersion + ", which this build does not bundle. Bundled versions: "
-                    + String.join(", ", schemaService.getVersions()) + "."));
+                    + schemaVersion + ", but this build authors version " + schemaService.getVersion() + "."));
         }
 
         final List<String> messages = schemaService.validate(schemaVersion, policyJson);

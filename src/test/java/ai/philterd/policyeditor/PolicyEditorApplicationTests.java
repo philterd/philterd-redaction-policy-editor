@@ -62,34 +62,30 @@ public class PolicyEditorApplicationTests {
     }
 
     @Test
-    public void schemaServiceLoadsBundledVersions() {
-        assertThat(schemaService.getVersions()).containsExactly("1.0.0", "1.1.0", "1.2.0");
-        assertThat(schemaService.getLatestVersion()).isEqualTo("1.2.0");
+    public void schemaServiceLoadsTheSingleBundledVersion() {
+        // The editor authors exactly one schema version: the one the bundled Phileas can run.
+        assertThat(schemaService.getVersion()).isEqualTo("1.1.0");
         assertThat(schemaService.getSupportedTestVersion()).isEqualTo("1.1.0");
-        assertThat(schemaService.getSchemaJson("1.0.0")).contains("\"title\": \"Phileas Redaction Policy\"");
-        assertThat(schemaService.getSchemaJson("1.2.0")).contains("\"title\": \"Phileas Redaction Policy\"");
+        assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"title\": \"Phileas Redaction Policy\"");
+        assertThat(schemaService.hasVersion("1.0.0")).isFalse();
+        assertThat(schemaService.hasVersion("1.2.0")).isFalse();
     }
 
     @Test
-    public void bundledSchemasCarryTheFeaturesTheirVersionsAdded() {
-        // 1.1.0 added regex validators and the local GLiNER model path; 1.2.0 added the filter
-        // "id", splitting "overlap", span disambiguation, and "region" on the phone number filter.
-        // Assert on the schema text so a mis-copied schema file fails the build.
-        assertThat(schemaService.getSchemaJson("1.0.0")).doesNotContain("\"validator\"");
+    public void bundledSchemaIsTheOneItClaimsToBe() {
+        // 1.1.0 carries regex validators and the local GLiNER model path, and does not yet carry
+        // span disambiguation, which arrived in 1.2.0. Assert on the schema text so a mis-copied
+        // schema file fails the build.
         assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"validator\"");
         assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"modelPath\"");
         assertThat(schemaService.getSchemaJson("1.1.0")).doesNotContain("spanDisambiguation");
-        assertThat(schemaService.getSchemaJson("1.2.0")).contains("spanDisambiguation");
-        assertThat(schemaService.getSchemaJson("1.2.0")).contains("\"overlap\"");
-        assertThat(schemaService.getSchemaJson("1.2.0")).contains("\"region\"");
     }
 
     @Test
     public void bundledCryptoSchemaDoesNotRequireAnInitializationVector() {
-        // Per-value AES-GCM nonces replaced the configured "iv"; the bundled 1.0.0 schema had
-        // drifted and still required it.
+        // Per-value AES-GCM nonces replaced the configured "iv".
         final String policy = "{\"crypto\":{\"key\":\"env:CRYPTO_KEY\"},\"identifiers\":{}}";
-        assertThat(schemaService.validate("1.0.0", policy)).isEmpty();
+        assertThat(schemaService.validate("1.1.0", policy)).isEmpty();
     }
 
     @Test
@@ -130,7 +126,7 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("Do not enter any PII.");
         assertThat(response.getBody()).contains("Version");
         assertThat(response.getBody()).contains("commit");
-        assertThat(response.getBody()).contains("schema-version-select");
+        assertThat(response.getBody()).contains("policy schema");
         assertThat(response.getBody()).contains("policy-form.js");
     }
 
@@ -139,14 +135,15 @@ public class PolicyEditorApplicationTests {
     public void shouldListSchemas() {
         ResponseEntity<Map> response = restTemplate.getForEntity(getUrl("/api/schemas"), Map.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat((List<String>) response.getBody().get("versions")).containsExactly("1.0.0", "1.1.0", "1.2.0");
-        assertThat(response.getBody().get("latest")).isEqualTo("1.2.0");
+        assertThat(response.getBody().get("version")).isEqualTo("1.1.0");
         assertThat(response.getBody().get("supportedTestVersion")).isEqualTo("1.1.0");
+        // The multi-version selector is gone, so nothing advertises a list of versions.
+        assertThat(response.getBody()).doesNotContainKey("versions");
     }
 
     @Test
     public void shouldServeSchemaForVersion() {
-        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/api/schemas/1.0.0"), String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/api/schemas/1.1.0"), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"$defs\"");
         assertThat(response.getBody()).contains("baseFilterStrategy");
@@ -167,7 +164,7 @@ public class PolicyEditorApplicationTests {
     public void shouldValidateConformingPolicy() {
         final String policy = "{\"identifiers\":{\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.0.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":true");
     }
@@ -177,7 +174,7 @@ public class PolicyEditorApplicationTests {
         // "name" is not an allowed top-level property (additionalProperties: false).
         final String policy = "{\"name\":\"bad\",\"identifiers\":{}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.0.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":false");
     }
@@ -185,10 +182,10 @@ public class PolicyEditorApplicationTests {
     @Test
     public void shouldAcceptSchemaLinkInPolicy() {
         // $schema is a JSON Schema keyword and must not be treated as a forbidden additional property.
-        final String policy = "{\"$schema\":\"https://www.philterd.ai/schemas/redaction-policy/1.0.0/schema.json\"," +
+        final String policy = "{\"$schema\":\"https://www.philterd.ai/schemas/redaction-policy/1.1.0/schema.json\"," +
                 "\"identifiers\":{\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.0.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":true");
     }
@@ -215,23 +212,17 @@ public class PolicyEditorApplicationTests {
         // The compiled policy JSON (carried as a string field) is the native Phileas shape.
         assertThat(response.getBody()).contains("ssnFilterStrategies");
         assertThat(response.getBody()).contains("MASK");
-        // PhiSQL 1.3.0 compiles to schema 1.2.0, which must be bundled for validation to run.
-        assertThat(response.getBody()).contains("\"schemaVersion\":\"1.2.0\"");
+        // PhiSQL 1.2.0 compiles to schema 1.1.0, the version this editor authors.
+        assertThat(response.getBody()).contains("\"schemaVersion\":\"1.1.0\"");
     }
 
     @Test
-    public void shouldAcceptSchemaSpecificFeaturesOnlyOnVersionsThatHaveThem() {
-        // Span disambiguation arrived in schema 1.2.0. Authoring it must validate there and be
-        // rejected by 1.0.0, which is the point of offering more than one version.
+    public void shouldRejectFeaturesFromNewerSchemaVersions() {
+        // Span disambiguation arrived in schema 1.2.0, which this build does not author.
         final String policy = "{\"config\":{\"analysis\":{\"spanDisambiguation\":false}},\"identifiers\":{}}";
-
-        ResponseEntity<String> onLatest = restTemplate.postForEntity(
-                getUrl("/api/validate/1.2.0"), jsonEntity(policy), String.class);
-        assertThat(onLatest.getBody()).contains("\"valid\":true");
-
-        ResponseEntity<String> onOldest = restTemplate.postForEntity(
-                getUrl("/api/validate/1.0.0"), jsonEntity(policy), String.class);
-        assertThat(onOldest.getBody()).contains("\"valid\":false");
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
+        assertThat(response.getBody()).contains("\"valid\":false");
     }
 
     @Test
