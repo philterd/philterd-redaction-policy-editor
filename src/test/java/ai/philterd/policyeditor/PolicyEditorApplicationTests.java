@@ -51,6 +51,12 @@ public class PolicyEditorApplicationTests {
         return new HttpEntity<>(body, headers);
     }
 
+    /** Escapes a string for embedding in a JSON request body built by hand. */
+    private String quoteJson(String value) {
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r") + "\"";
+    }
+
     private HttpEntity<String> textEntity(String body) {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_PLAIN);
@@ -128,6 +134,12 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("commit");
         assertThat(response.getBody()).contains("policy schema");
         assertThat(response.getBody()).contains("policy-form.js");
+        // The test output is tabbed: redacted text with highlights, and the explain response.
+        assertThat(response.getBody()).contains("test-output-tabs");
+        assertThat(response.getBody()).contains("loadSampleBtn");
+        assertThat(response.getBody()).contains("redacted-pane");
+        assertThat(response.getBody()).contains("explanation-pane");
+        assertThat(response.getBody()).doesNotContain("showExplanationBtn");
     }
 
     @Test
@@ -246,6 +258,80 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"success\":false");
         assertThat(response.getBody()).contains("errors");
+    }
+
+    @Test
+    public void shouldServeSyntheticSampleText() {
+        // The samples exist so that testing a policy never requires the user to supply data of
+        // their own, so every entry in the menu has to resolve.
+        for (final String name : List.of("clinical-note", "financial-record", "legal-filing", "support-email")) {
+            ResponseEntity<String> response = restTemplate.getForEntity(
+                    getUrl("/samples/" + name + ".txt"), String.class);
+            assertThat(response.getStatusCode().value()).isEqualTo(200);
+            assertThat(response.getBody()).isNotBlank();
+        }
+    }
+
+    @Test
+    public void sampleTextShouldExerciseTheFilters() {
+        // A sample that detects nothing would teach the user nothing, so check one end to end.
+        final String sample = restTemplate.getForObject(getUrl("/samples/clinical-note.txt"), String.class);
+        final String body = "{\"version\":\"1.1.0\",\"text\":" + quoteJson(sample) + "," +
+                "\"policy\":{\"identifiers\":{" +
+                "\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
+                "\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
+                "\"emailAddress\":{\"emailAddressFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
+                "\"phoneNumber\":{\"phoneNumberFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/test-policy"), jsonEntity(body), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("REDACTED-ssn");
+        assertThat(response.getBody()).contains("REDACTED-age");
+        assertThat(response.getBody()).contains("REDACTED-email-address");
+        assertThat(response.getBody()).contains("REDACTED-phone-number");
+    }
+
+    @Test
+    public void shouldExplainSpansAcrossSeveralEntityTypes() {
+        // The highlights are drawn from these spans, so the explanation has to carry one per
+        // detection with the offsets and the replacement that shifted them.
+        final String body = "{\"version\":\"1.1.0\"," +
+                "\"text\":\"Patient John, SSN 123-45-6789, seen on 2026-01-15.\"," +
+                "\"policy\":{\"identifiers\":{" +
+                "\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
+                "\"firstName\":{\"firstNameFilterStrategies\":[{\"strategy\":\"MASK\"}]}," +
+                "\"date\":{\"dateFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/test-policy"), jsonEntity(body), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("appliedSpans");
+        assertThat(response.getBody()).contains("identifiedSpans");
+        assertThat(response.getBody()).contains("SSN").contains("FIRST_NAME").contains("DATE");
+        // Replacements of a different length than the text they replace are what force the
+        // highlight offsets to be remapped, so both shapes must be present.
+        assertThat(response.getBody()).contains("REDACTED-ssn").contains("****");
+    }
+
+    @Test
+    public void shouldReportSpansThatWereIdentifiedButNotApplied() {
+        // An ignored value is detected and left in the clear. It appears among the identified spans
+        // but not the applied ones, which is what lets the editor mark it differently.
+        final String body = "{\"version\":\"1.1.0\",\"text\":\"SSN 123-45-6789 on 2026-01-15.\"," +
+                "\"policy\":{\"identifiers\":{" +
+                "\"ssn\":{\"ignored\":[\"123-45-6789\"],\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
+                "\"date\":{\"dateFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/test-policy"), jsonEntity(body), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        // The ignored SSN survives into the output; the date does not.
+        assertThat(response.getBody()).contains("123-45-6789");
+        assertThat(response.getBody()).contains("REDACTED-date");
+        // The span carries ignored: true, and it is absent from appliedSpans. The editor keys off
+        // the arrays rather than this flag, because an ignored span still reports applied: true.
+        assertThat(response.getBody()).contains("\\\"ignored\\\": true");
     }
 
     @Test

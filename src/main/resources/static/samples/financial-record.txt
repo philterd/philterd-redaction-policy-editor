@@ -1,0 +1,8 @@
+Account holder: John Smith
+Card on file: 4111 1111 1111 1111 (expires 09/2029)
+Routing number 021000021, account 000123456789
+IBAN GB82 WEST 12345698765432
+
+Payment of $2,450.00 posted 2026-01-08 from 203.0.113.42. Billing address
+is 1600 Pennsylvania Avenue, Washington, DC 20500. Questions may be sent to
+j.smith@example.com or called in to (555) 555-0177.

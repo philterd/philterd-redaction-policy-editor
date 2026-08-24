@@ -10,6 +10,10 @@ Welcome to the Philterd Policy Editor documentation. This tool provides a user-f
 - **Multiple Strategies**: Configure multiple redaction strategies per filter with optional conditions.
 - **Advanced Configuration**: Fine-tune PDF redaction settings, document splitting, and post-filtering.
 - **Policy Management**: Upload existing JSON policies to edit, and download or copy generated policies.
+- **Policy Testing**: Run a policy against text in the browser and see which spans were redacted, with
+  bundled synthetic sample documents so no real data is needed.
+- **Author with PhiSQL**: Write a policy in PhiSQL and compile it into the editor.
+- **Health and Metrics**: `/actuator/health` and `/actuator/prometheus` for monitoring and scraping.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Redaction Policies

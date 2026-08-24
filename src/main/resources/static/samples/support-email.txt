@@ -1,0 +1,8 @@
+From: robert.chen@example.com
+To: support@example.com
+Date: 2026-01-19
+
+Hi, my name is Robert Chen and I cannot sign in from 198.51.100.23. My account
+is registered to (555) 555-0163 and my employee ID is EMP-40912. I last logged
+in on 2026-01-17 from our Boston office. My laptop MAC address is
+00:1B:44:11:3A:B7 if that helps.

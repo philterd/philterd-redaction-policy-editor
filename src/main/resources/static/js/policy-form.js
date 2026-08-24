@@ -817,6 +817,24 @@
         if (s) s.classList.remove("d-none");
     }
 
+    /**
+     * Fills the test input with one of the bundled synthetic samples. The samples exist so that
+     * trying a policy never requires the user to supply data of their own.
+     */
+    function loadSampleText(name) {
+        fetch("/samples/" + encodeURIComponent(name) + ".txt")
+            .then(function (r) {
+                if (!r.ok) throw new Error("Sample text \"" + name + "\" is not available.");
+                return r.text();
+            })
+            .then(function (text) {
+                const input = document.getElementById("testText");
+                input.value = text;
+                input.focus();
+            })
+            .catch(function (err) { alert(err.message); });
+    }
+
     function redactText() {
         const text = document.getElementById("testText").value;
         const body = JSON.stringify({ version: currentVersion, policy: buildPolicy(), text: text });
@@ -826,25 +844,82 @@
             body: body
         }).then(function (r) { return r.json(); })
             .then(function (res) {
-                document.getElementById("redactedText").value = res.filteredText || "";
-                const explBtn = document.getElementById("showExplanationBtn");
-                if (res.explanation) {
-                    document.getElementById("explanationText").value = res.explanation;
-                    explBtn.classList.remove("d-none");
-                } else {
-                    explBtn.classList.add("d-none");
-                }
+                document.getElementById("explanationText").value = res.explanation || "";
+                renderRedactedText(res.filteredText || "", parseSpans(res.explanation));
             })
             .catch(function (err) {
-                document.getElementById("redactedText").value = "Error: " + err.message;
+                renderRedactedText("Error: " + err.message, []);
             });
     }
 
-    function toggleExplanation() {
-        const s = document.getElementById("explanationSection");
-        const btn = document.getElementById("showExplanationBtn");
-        const hidden = s.classList.toggle("d-none");
-        btn.textContent = hidden ? "Show Explanation" : "Hide Explanation";
+    /**
+     * Reads the applied and identified spans out of the explanation. A span that was identified but
+     * not applied was detected and left in the clear, which is what explains a value the policy did
+     * not redact, so both are kept and marked differently.
+     */
+    function parseSpans(explanation) {
+        if (!explanation) return [];
+        let parsed;
+        try {
+            parsed = JSON.parse(explanation);
+        } catch (e) {
+            return [];
+        }
+        const applied = parsed.appliedSpans || [];
+        const seen = {};
+        const spans = applied.map(function (s) {
+            seen[s.characterStart + ":" + s.characterEnd] = true;
+            return { span: s, applied: true };
+        });
+        (parsed.identifiedSpans || []).forEach(function (s) {
+            if (!seen[s.characterStart + ":" + s.characterEnd]) {
+                spans.push({ span: s, applied: false });
+            }
+        });
+        return spans.sort(function (a, b) { return a.span.characterStart - b.span.characterStart; });
+    }
+
+    /**
+     * Renders the filtered text with a highlight over each span.
+     *
+     * Span offsets locate the span in the text that was submitted, but what is displayed here is the
+     * filtered text, and a replacement rarely has the same length as what it replaced. Walking the
+     * spans in order and carrying the running difference maps each one onto the filtered text.
+     */
+    function renderRedactedText(filteredText, spans) {
+        const out = document.getElementById("redactedText");
+        if (!out) return;
+        out.innerHTML = "";
+
+        let cursor = 0;   // position in filteredText already emitted
+        let delta = 0;    // characters gained or lost by the replacements seen so far
+
+        spans.forEach(function (entry) {
+            const span = entry.span;
+            const original = span.characterEnd - span.characterStart;
+            const shown = entry.applied ? (span.replacement || "").length : original;
+            const start = span.characterStart + delta;
+            const end = start + shown;
+            if (entry.applied) delta += shown - original;
+
+            // A span that does not land inside the filtered text cannot be highlighted honestly.
+            if (start < cursor || end > filteredText.length) return;
+
+            out.appendChild(document.createTextNode(filteredText.slice(cursor, start)));
+            const mark = el("span", entry.applied ? "span-applied" : "span-identified",
+                filteredText.slice(start, end));
+            mark.title = spanTitle(span, entry.applied);
+            out.appendChild(mark);
+            cursor = end;
+        });
+
+        out.appendChild(document.createTextNode(filteredText.slice(cursor)));
+    }
+
+    function spanTitle(span, applied) {
+        const confidence = (typeof span.confidence === "number") ? span.confidence.toFixed(2) : span.confidence;
+        return span.filterType + ", confidence " + confidence +
+            (applied ? "" : " (detected, not redacted)");
     }
 
     // ---- Wire up ----------------------------------------------------------------------------
@@ -912,8 +987,8 @@
         showPresetDisclaimer: showPresetDisclaimer,
         confirmLoadPreset: confirmLoadPreset,
         showTestSection: showTestSection,
+        loadSampleText: loadSampleText,
         redactText: redactText,
-        toggleExplanation: toggleExplanation,
         togglePhiSqlPanel: togglePhiSqlPanel,
         compilePhiSql: compilePhiSql
     };

@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Spring Boot Actuator with `/actuator/health` and `/actuator/prometheus`. Only those two
   endpoints are exposed, and the discovery index at `/actuator` is disabled.
 - Added a container healthcheck to `docker-compose.yml` that requires an `UP` health status.
+- The Test Policy output is now two tabs: the redacted text, with each redacted span highlighted, and
+  the explanation. Values that were detected but left in the clear are highlighted differently.
+- Added a "Load Sample Text" menu to the Test Policy input, offering four synthetic documents so a
+  policy can be tried without entering real data.
 
 ### Changed
 - The editor now authors a single redaction policy schema version, the one the bundled Phileas

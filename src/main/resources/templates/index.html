@@ -34,6 +34,33 @@
         .github-badge svg {
             margin-right: 8px;
         }
+
+        /* Test output: the redacted text is rendered rather than typed into, so it can carry
+           highlights. It keeps the form-control look and wraps like the textarea it replaced. */
+        #redactedText {
+            min-height: 8rem;
+            max-height: 24rem;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #redactedText:empty::before {
+            content: attr(data-placeholder);
+            color: #6c757d;
+        }
+        .span-applied, .span-identified {
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        /* Redacted: filled. Detected but left in the clear: outlined, so the two never look alike. */
+        .span-applied {
+            background-color: #cfe2ff;
+            box-shadow: inset 0 -2px 0 #0d6efd;
+        }
+        .span-identified {
+            background-color: #fff3cd;
+            box-shadow: inset 0 0 0 1px #ffc107;
+        }
     </style>
 
     <th:block th:if="${customHeader}" th:utext="${customHeader}"></th:block>
@@ -158,20 +185,51 @@
             <hr>
             <h3>Test Policy</h3>
             <div class="mb-3">
-                <label for="testText" class="form-label">Input Text</label>
-                <textarea class="form-control" id="testText" rows="5" placeholder="Paste text here to test the policy..."></textarea>
+                <div class="d-flex align-items-center justify-content-between">
+                    <label for="testText" class="form-label mb-0">Input Text</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="loadSampleBtn"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Load Sample Text
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loadSampleBtn">
+                            <li><a class="dropdown-item" href="#" onclick="PolicyEditor.loadSampleText('clinical-note'); return false;">Clinical Note</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="PolicyEditor.loadSampleText('financial-record'); return false;">Financial Record</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="PolicyEditor.loadSampleText('legal-filing'); return false;">Legal Filing</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="PolicyEditor.loadSampleText('support-email'); return false;">Support Email</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <textarea class="form-control mt-1" id="testText" rows="8"
+                          placeholder="Enter text to test the policy, or load sample text from the menu above."></textarea>
+                <div class="form-text">The sample text is synthetic. Nothing in it belongs to a real person.</div>
             </div>
             <button type="button" class="btn btn-success" onclick="PolicyEditor.redactText()">Redact</button>
-            <button type="button" class="btn btn-info ms-2 d-none" id="showExplanationBtn" onclick="PolicyEditor.toggleExplanation()">Show Explanation</button>
 
             <div class="mt-4">
-                <label for="redactedText" class="form-label">Redacted Text</label>
-                <textarea class="form-control" id="redactedText" rows="5" readonly placeholder="Redacted text will appear here..."></textarea>
-            </div>
-
-            <div id="explanationSection" class="mt-4 d-none">
-                <label for="explanationText" class="form-label">Explanation</label>
-                <textarea class="form-control" id="explanationText" rows="10" readonly></textarea>
+                <ul class="nav nav-tabs" id="test-output-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="redacted-tab" data-bs-toggle="tab" data-bs-target="#redacted-pane"
+                                type="button" role="tab" aria-controls="redacted-pane" aria-selected="true">Redacted Text</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="explanation-tab" data-bs-toggle="tab" data-bs-target="#explanation-pane"
+                                type="button" role="tab" aria-controls="explanation-pane" aria-selected="false">Explanation</button>
+                    </li>
+                </ul>
+                <div class="tab-content border border-top-0 rounded-bottom p-3">
+                    <div class="tab-pane fade show active" id="redacted-pane" role="tabpanel" aria-labelledby="redacted-tab">
+                        <div id="redactedText" data-placeholder="Redacted text will appear here..."></div>
+                        <div class="form-text mt-2">
+                            <span class="span-applied">Redacted</span>
+                            <span class="span-identified ms-3">Detected, not redacted</span>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="explanation-pane" role="tabpanel" aria-labelledby="explanation-tab">
+                        <textarea class="form-control font-monospace" id="explanationText" rows="14" readonly
+                                  placeholder="The explanation will appear here..."></textarea>
+                    </div>
+                </div>
             </div>
         </div>
 

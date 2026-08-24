@@ -1,0 +1,8 @@
+Patient: Jane Doe (DOB 04/12/1978)
+MRN 884213, SSN 123-45-6789
+Seen at Springfield General Hospital on 2026-01-15 by Dr. Alan Reyes.
+
+Ms. Doe, a 47-year-old patient, reports intermittent chest pain beginning
+2025-12-30. Her mother, Maria Doe, was contacted at (555) 555-0142.
+Follow-up scheduled for 2026-02-03. Discharge summary sent to
+jane.doe@example.com.

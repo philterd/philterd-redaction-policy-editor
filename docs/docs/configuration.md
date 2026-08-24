@@ -8,6 +8,13 @@ The Philterd Policy Editor can be configured using environment variables:
 | `CUSTOM_HEADER_FILE` | Path to a file containing custom HTML to be inserted into the `<head>` of the page. | (empty) |
 | `CUSTOM_FOOTER_FILE` | Path to a file containing custom HTML to be inserted into the footer of the page. | (empty) |
 
+## Policy schema version
+
+The editor authors a single redaction policy schema version: the one the bundled Phileas runtime can
+run, so any policy built here can also be tested here. The version is shown on the page next to the
+application version and commit, and there is nothing to configure. Moving to a newer schema means
+upgrading the editor to a build whose Phileas, PhiSQL, and bundled schema all target it.
+
 ## Health and metrics
 
 Two Spring Boot Actuator endpoints are exposed for monitoring, matching Philter:
