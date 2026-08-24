@@ -39,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `/api/compile` now fails with an error when the schema version PhiSQL targets is not bundled,
   instead of returning a policy that was never validated.
+- Testing a policy that uses the PhEye filter now explains that model-backed detection runs in a
+  separate service and cannot be tested in the editor, instead of surfacing an internal error.
+- Text submitted for testing, and PhiSQL source submitted for compiling, no longer reach the
+  application log on the error path. Failures are logged by exception type and origin.
+- The JavaScript tests are skipped when tests are skipped, so `mvn package -DskipTests` no longer
+  requires Node. The Docker build uses that command.
 
 ## 1.0.0 - 2026-04-27
 

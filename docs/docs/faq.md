@@ -23,7 +23,7 @@ When accessing the tool via https://policies.philterd.ai/, data is sent from you
 
 This includes the **Test Policy** feature. The text you enter there is sent to the server, filtered, and returned with the redactions applied. Use the bundled sample text, which is synthetic, rather than data of your own.
 
-When self-hosting, the tool is a self-contained application. When you click "Generate Policy" or "Redact," the request is processed by the local instance of the application. Data is not sent to any third-party server and is not stored: the editor has no database and writes nothing you enter to disk.
+When self-hosting, the tool is a self-contained application. When you click "Generate Policy" or "Redact," the request is processed by the local instance of the application. Data is not sent to any third-party server and is not stored: the editor has no database, writes nothing you enter to disk, and does not record it in the application log, including when a request fails.
 
 We recommend self-hosting the tool in an air-gapped (firewalled) environment for maximum security.
 

@@ -17,6 +17,12 @@
 		<java.version>25</java.version>
 		<phileas.version>4.2.0</phileas.version>
 		<phisql.version>1.2.0</phisql.version>
+		<!-- The JavaScript tests need Node. They are skipped whenever tests are skipped
+		     (-DskipTests, as the Docker build does), and can be skipped on their own with
+		     -DskipJsTests. Surefire's own skip flags do not reach a plugin bound to the test
+		     phase, so this has to be wired up explicitly. -->
+		<skipTests>false</skipTests>
+		<skipJsTests>${skipTests}</skipJsTests>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -75,6 +81,29 @@
 						<goals>
 							<goal>build-info</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- The highlight rendering in policy-form.js is JavaScript, so its tests run under
+				     Node during the test phase. See skipJsTests above for skipping them. -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>javascript-tests</id>
+						<phase>test</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<skip>${skipJsTests}</skip>
+							<executable>node</executable>
+							<arguments>
+								<argument>${project.basedir}/src/test/js/highlight.test.js</argument>
+							</arguments>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

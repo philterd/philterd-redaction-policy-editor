@@ -211,7 +211,9 @@ public class PolicyController {
         } catch (final PhiSQL.ParseException | Compiler.CompileException e) {
             return CompileResponse.error(List.of(e.getMessage()));
         } catch (final Exception e) {
-            LOGGER.error("Error compiling PhiSQL: {}", e.getMessage(), e);
+            // PhiSQL source is user input, and a compiler message can quote it, so keep it out of
+            // the log the same way the test input is kept out.
+            LOGGER.error("Error compiling PhiSQL: {} at {}", e.getClass().getName(), originOf(e));
             return CompileResponse.error(List.of("Failed to compile PhiSQL: " + e.getMessage()));
         }
 
@@ -257,6 +259,16 @@ public class PolicyController {
             final String policyJson = request.getPolicy() != null ? request.getPolicy().toString() : "{}";
             final Policy policy = gson.fromJson(policyJson, Policy.class);
 
+            // PhEye detection runs in a separate AI service. The bundled engine is given no HTTP
+            // client, deliberately: a public deployment would otherwise call whatever endpoint a
+            // visitor typed into the policy. Say that plainly instead of failing inside Phileas.
+            if (usesModelBackedFilter(policy)) {
+                return new TestPolicyResponse("This policy uses the PhEye filter, which detects entities with an "
+                        + "AI model hosted in a separate service. The editor runs its redaction engine in process "
+                        + "and does not call out to PhEye, so a policy using it cannot be tested here. Remove the "
+                        + "PhEye filter to test the rest of the policy.", "");
+            }
+
             final PhileasConfiguration phileasConfiguration = new PhileasConfiguration(new Properties());
             final PlainTextFilterService filterService = new PlainTextFilterService(
                     phileasConfiguration, new DefaultContextService(), new InMemoryVectorService(), null);
@@ -265,9 +277,30 @@ public class PolicyController {
 
             return new TestPolicyResponse(result.getFilteredText(), gson.toJson(result.getExplanation()));
         } catch (final Exception e) {
-            LOGGER.error("Error testing policy: {}", e.getMessage(), e);
+            // The message and the stack trace can both quote the text being filtered, and that text
+            // is the user's to keep. Log where it failed, not what it was working on.
+            LOGGER.error("Error testing policy: {} at {}", e.getClass().getName(), originOf(e));
             return new TestPolicyResponse("Error: " + e.getMessage(), "");
         }
+    }
+
+    /**
+     * True when the policy contains a filter whose detection runs in a separate service rather than
+     * in process. Today that is PhEye, reachable either as {@code pheyes} or the deprecated
+     * {@code person}.
+     */
+    private static boolean usesModelBackedFilter(final Policy policy) {
+        if (policy == null || policy.getIdentifiers() == null) {
+            return false;
+        }
+        final List<?> phEyes = policy.getIdentifiers().getPhEyes();
+        return (phEyes != null && !phEyes.isEmpty()) || policy.getIdentifiers().getPerson() != null;
+    }
+
+    /** The first stack frame of a throwable, which locates a failure without quoting any content. */
+    private static String originOf(final Throwable t) {
+        final StackTraceElement[] frames = t.getStackTrace();
+        return (frames != null && frames.length > 0) ? frames[0].toString() : "unknown";
     }
 
     /** Request body for {@link #testPolicy}. {@code policy} is the raw policy JSON built by the UI. */

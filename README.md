@@ -76,6 +76,12 @@ setting `phileas.supported-schema-version` to match. Exactly one schema must be 
 application fails to start if it finds none or more than one, because the form has no way to choose
 between two.
 
+## Building
+
+`mvn test` runs the Java tests and the JavaScript tests for the test-output highlighting, which
+execute under Node. Skip the JavaScript tests with `-DskipJsTests`, or skip all tests with
+`-DskipTests`, which the Docker build does.
+
 ## Getting Started
 
 ### Using Docker

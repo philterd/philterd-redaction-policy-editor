@@ -335,6 +335,38 @@ public class PolicyEditorApplicationTests {
     }
 
     @Test
+    public void shouldExplainThatModelBackedFiltersCannotBeTested() {
+        // PhEye detects with a model hosted elsewhere, and the editor calls no such service. The
+        // user gets a sentence about it rather than a NullPointerException from inside Phileas.
+        final String body = "{\"version\":\"1.1.0\",\"text\":\"John Smith lives in Boston.\"," +
+                "\"policy\":{\"identifiers\":{\"pheyes\":[{" +
+                "\"phEyeConfiguration\":{\"endpoint\":\"http://localhost:9999/\"}," +
+                "\"phEyeFilterStrategies\":[{\"strategy\":\"REDACT\"}]}]}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/test-policy"), jsonEntity(body), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("PhEye filter");
+        assertThat(response.getBody()).contains("cannot be tested here");
+        assertThat(response.getBody()).doesNotContain("HttpClient");
+        assertThat(response.getBody()).doesNotContain("NullPointerException");
+    }
+
+    @Test
+    public void shouldExplainThatTheDeprecatedPersonFilterCannotBeTestedEither() {
+        // "person" is the deprecated spelling of the same PhEye filter.
+        final String body = "{\"version\":\"1.1.0\",\"text\":\"John Smith lives in Boston.\"," +
+                "\"policy\":{\"identifiers\":{\"person\":{" +
+                "\"phEyeConfiguration\":{\"endpoint\":\"http://localhost:9999/\"}," +
+                "\"phEyeFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/test-policy"), jsonEntity(body), String.class);
+
+        assertThat(response.getBody()).contains("PhEye filter");
+        assertThat(response.getBody()).doesNotContain("HttpClient");
+    }
+
+    @Test
     public void shouldGateTestPolicyForUnsupportedVersion() {
         final String body = "{\"version\":\"9.9.9\",\"text\":\"My age is 25.\",\"policy\":{}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
