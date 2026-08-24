@@ -24,6 +24,7 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Policy Testing**: Test your policies against sample text directly in the browser and view detailed
   redaction explanations. Testing runs the bundled Phileas engine, so it is available for the schema
   version that engine supports (see `phileas.supported-schema-version`).
+- **Health and Metrics**: `/actuator/health` and `/actuator/prometheus` for monitoring and scraping.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Configuration
@@ -41,6 +42,23 @@ The schema version that the **Test Policy** feature can run is controlled by the
 `PHILEAS_SUPPORTEDSCHEMAVERSION` environment variable). It must match the schema version supported by
 the bundled Phileas runtime. Authoring and downloading policies works for every bundled schema
 version regardless of this setting.
+
+## Health and metrics
+
+Two Spring Boot Actuator endpoints are exposed, matching Philter:
+
+| Endpoint | Description |
+|----------|-------------|
+| `/actuator/health` | Returns `{"status":"UP"}` with HTTP 200 while the application is serving. |
+| `/actuator/prometheus` | JVM, process, Tomcat session, and HTTP request metrics in Prometheus text format. |
+
+Both are reachable without authentication. No other actuator endpoint responds: exposure is limited
+to these two (`management.endpoints.web.exposure.include`) and the discovery index at `/actuator` is
+turned off (`management.endpoints.web.discovery.enabled=false`), so everything else returns 404.
+Override either property to change what is published.
+
+`docker-compose.yml` uses `/actuator/health` as the container healthcheck, so `docker compose ps`
+reports the application healthy only once it answers with an `UP` status.
 
 ## Schema versions
 

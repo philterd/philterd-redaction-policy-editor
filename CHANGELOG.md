@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the bundled PhiSQL version to the version line on the page.
 - Added redaction policy schema versions 1.1.0 and 1.2.0. The version selector offers 1.0.0, 1.1.0,
   and 1.2.0 and defaults to the newest.
+- Added Spring Boot Actuator with `/actuator/health` and `/actuator/prometheus`. Only those two
+  endpoints are exposed, and the discovery index at `/actuator` is disabled.
+- Added a container healthcheck to `docker-compose.yml` that requires an `UP` health status.
 
 ### Changed
 - Upgraded PhiSQL to 1.3.0, which compiles to redaction policy schema 1.2.0.

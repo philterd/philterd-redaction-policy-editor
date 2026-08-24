@@ -9,7 +9,20 @@ services:
       # CUSTOM_HEADER_FILE: /tmp/header.html
       # CUSTOM_FOOTER_FILE: /tmp/footer.html
     ports:
-      - "8081:8080"
+      - "8080:8080"
+    # The runtime image carries no curl or wget, so the probe speaks HTTP over bash's /dev/tcp and
+    # requires an UP status rather than settling for an open port.
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q '"status":"UP"' <&3
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     #volumes:
     #  - ./header.html:/tmp/header.html
     #  - ./footer.html:/tmp/footer.html

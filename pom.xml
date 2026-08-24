@@ -39,6 +39,16 @@
 			<version>${phisql.version}</version>
 		</dependency>
 		<dependency>
+			<!-- Serves /actuator/health and /actuator/prometheus. Exposure is limited in
+			     application.properties; see the README. -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.18.0</version>

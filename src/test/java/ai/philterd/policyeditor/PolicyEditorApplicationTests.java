@@ -93,6 +93,36 @@ public class PolicyEditorApplicationTests {
     }
 
     @Test
+    public void shouldExposeHealthEndpoint() {
+        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/actuator/health"), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).contains("\"status\":\"UP\"");
+    }
+
+    @Test
+    public void shouldExposePrometheusMetrics() {
+        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/actuator/prometheus"), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        // Prometheus text format, not JSON.
+        assertThat(response.getBody()).contains("# TYPE");
+        assertThat(response.getBody()).contains("jvm_memory_used_bytes");
+    }
+
+    @Test
+    public void shouldNotExposeOtherActuatorEndpoints() {
+        // Only health and prometheus are exposed, and the discovery index is off, so every other
+        // actuator path (including /actuator itself) must 404.
+        for (final String path : List.of("", "/env", "/beans", "/mappings", "/loggers", "/heapdump")) {
+            try {
+                restTemplate.getForEntity(getUrl("/actuator" + path), String.class);
+                throw new AssertionError("Expected 404 for /actuator" + path);
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                assertThat(e.getStatusCode().value()).isEqualTo(404);
+            }
+        }
+    }
+
+    @Test
     public void shouldReturnIndexPage() {
         ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/"), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
