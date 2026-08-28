@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added redaction policy schema version 1.1.0.
 - Added Spring Boot Actuator with `/actuator/health` and `/actuator/prometheus`. Only those two
   endpoints are exposed, and the discovery index at `/actuator` is disabled.
+- Added a `/api/health` endpoint that reports `{"status": "UP", "applicationVersion": "<version>"}`,
+  matching the health contract shared across Philterd products. The version comes from the build.
 - Added a container healthcheck to `docker-compose.yml` that requires an `UP` health status.
 - The Test Policy output is now two tabs: the redacted text, with each redacted span highlighted, and
   the explanation. Values that were detected but left in the clear are highlighted differently.

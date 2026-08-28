@@ -13,7 +13,8 @@ Welcome to the Philterd Policy Editor documentation. This tool provides a user-f
 - **Policy Testing**: Run a policy against text in the browser and see which spans were redacted, with
   bundled synthetic sample documents so no real data is needed.
 - **Author with PhiSQL**: Write a policy in PhiSQL and compile it into the editor.
-- **Health and Metrics**: `/actuator/health` and `/actuator/prometheus` for monitoring and scraping.
+- **Health and Metrics**: `/api/health` reports the status and application version, and
+  `/actuator/health` and `/actuator/prometheus` cover probing and scraping.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Redaction Policies

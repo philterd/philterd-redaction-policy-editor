@@ -17,14 +17,28 @@ upgrading the editor to a build whose Phileas, PhiSQL, and bundled schema all ta
 
 ## Health and metrics
 
-Two Spring Boot Actuator endpoints are exposed for monitoring, matching Philter:
+Three endpoints are exposed for monitoring:
 
 | Endpoint | Description |
 | --- | --- |
+| `/api/health` | Returns HTTP 200 and the status and application version while the application is serving. |
 | `/actuator/health` | Returns HTTP 200 with a body containing `"status":"UP"` while the application is serving. |
 | `/actuator/prometheus` | JVM, process, Tomcat session, and HTTP request metrics in Prometheus text format. |
 
-Both are reachable without authentication. Point a monitoring system at `/actuator/health` and a
+All three are reachable without authentication.
+
+`/api/health` is the health endpoint shared across Philterd products, and is the one that reports
+which build is running:
+
+```json
+{"status": "UP", "applicationVersion": "1.1.0"}
+```
+
+The version is the one recorded at build time, so it is what is actually deployed rather than a
+value that has to be kept in step by hand. A build made outside Maven, such as one run from an IDE,
+records no version and the endpoint reports `"unknown"`.
+
+The two actuator endpoints match Philter. Point a monitoring system at either health endpoint and a
 Prometheus scrape job at `/actuator/prometheus`:
 
 ```yaml
@@ -39,9 +53,9 @@ The editor registers no metrics of its own, so what is exported is the standard 
 heap and garbage collection, thread and class counts, Tomcat session counts, process uptime and CPU,
 disk space, and `http_server_requests_seconds` timings broken down by URI and status.
 
-Kubernetes-style probes are available as sub-paths of the health endpoint, `/actuator/health/liveness`
-and `/actuator/health/readiness`. Apart from those, no other actuator endpoint responds. Two
-application properties control what is published:
+Kubernetes-style probes are available as sub-paths of the actuator health endpoint:
+`/actuator/health/liveness` and `/actuator/health/readiness`. Apart from those, no other actuator
+endpoint responds. Two application properties control what is published:
 
 | Property | Value | Description |
 | --- | --- | --- |
