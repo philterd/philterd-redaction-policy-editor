@@ -73,6 +73,7 @@ public class PhiSqlService {
         }
 
         stripSchemaLink(policy);
+        renameStrategyAliases(policy);
 
         // Some shapes have no PhiSQL form at all, and the field-by-field difference report explains
         // them poorly ("cannot express identifiers.age" is true but unhelpful). Name them first.
@@ -163,6 +164,27 @@ public class PhiSqlService {
             ((ObjectNode) policy).remove("$schema");
         }
         return policy;
+    }
+
+    /**
+     * Renames a deprecated strategies field (such as {@code zipCodeFilterStrategy}) to its current
+     * name. The compiler only writes the current name, so the round trip would otherwise report the
+     * filter as lost.
+     */
+    private void renameStrategyAliases(final JsonNode policy) {
+        final JsonNode identifiers = policy.path("identifiers");
+        final Iterator<String> fields = identifiers.fieldNames();
+        while (fields.hasNext()) {
+            final PhiSqlCatalog.Entity entity = catalog.entityForField(fields.next());
+            if (entity == null || !(identifiers.path(entity.phileasField()) instanceof ObjectNode filter)) {
+                continue;
+            }
+            for (final String alias : entity.phileasStrategiesFieldAliases()) {
+                if (filter.has(alias) && !filter.has(entity.phileasStrategiesField())) {
+                    filter.set(entity.phileasStrategiesField(), filter.remove(alias));
+                }
+            }
+        }
     }
 
     /**

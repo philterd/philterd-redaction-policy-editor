@@ -36,7 +36,7 @@ function runSuite(suite) {
 module.exports = { runSuite: runSuite };
 
 if (require.main === module) {
-    const suites = [require('./highlight.test'), require('./seed.test')];
+    const suites = [require('./highlight.test'), require('./seed.test'), require('./form.test')];
     const failed = suites.reduce(function (total, suite) { return total + runSuite(suite); }, 0);
     process.exit(failed === 0 ? 0 : 1);
 }

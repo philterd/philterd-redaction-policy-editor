@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `docker-compose.yml` with examples for using `CUSTOM_HEADER_FILE` and `CUSTOM_FOOTER_FILE` with mounts.
 - Added a "Fork on GitHub" badge to the index page.
 - Added version number on page, alongside the policy schema version the editor authors.
-- Added redaction policy schema version 1.1.0.
+- Added redaction policy schema version 1.3.0.
 - Added Spring Boot Actuator with `/actuator/health` and `/actuator/prometheus`. Only those two
   endpoints are exposed, and the discovery index at `/actuator` is disabled.
 - Added a `/api/health` endpoint that reports `{"status": "UP", "applicationVersion": "<version>"}`,
@@ -34,8 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runtime can run, so every policy it produces can be tested in the browser. The policy schema
   version dropdown has been removed, and the version is shown on the page instead. The application
   fails to start unless exactly one schema is bundled.
-- Upgraded Phileas to 4.2.0 and PhiSQL to 1.2.0. Both work with redaction policy schema 1.1.0, which
+- Upgraded Phileas to 4.5.0 and PhiSQL to 1.6.0. Both work with redaction policy schema 1.3.0, which
   replaces the previously bundled 1.0.0.
+- Removed `physicianName` from the healthcare preset. Schema 1.3.0 removed the filter; physician names
+  are now detected through PhEye.
+- Schema 1.3.0 renamed `zipCodeFilterStrategy` to `zipCodeFilterStrategies`. New zip code filters use
+  the new name, and a policy that still uses the old one exports to PhiSQL.
 - The bundled schema is copied verbatim from `philterd/phisql`: the crypto settings no longer require
   an `iv`, because `CRYPTO_REPLACE` generates a per-value AES-GCM nonce.
 - Building with Java 25, which the released PhiSQL artifacts require.

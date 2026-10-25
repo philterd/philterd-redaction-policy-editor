@@ -76,28 +76,28 @@ public class PolicyEditorApplicationTests {
     @Test
     public void schemaServiceLoadsTheSingleBundledVersion() {
         // The editor authors exactly one schema version: the one the bundled Phileas can run.
-        assertThat(schemaService.getVersion()).isEqualTo("1.1.0");
-        assertThat(schemaService.getSupportedTestVersion()).isEqualTo("1.1.0");
-        assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"title\": \"Phileas Redaction Policy\"");
-        assertThat(schemaService.hasVersion("1.0.0")).isFalse();
+        assertThat(schemaService.getVersion()).isEqualTo("1.3.0");
+        assertThat(schemaService.getSupportedTestVersion()).isEqualTo("1.3.0");
+        assertThat(schemaService.getSchemaJson("1.3.0")).contains("\"title\": \"Phileas Redaction Policy\"");
+        assertThat(schemaService.hasVersion("1.1.0")).isFalse();
         assertThat(schemaService.hasVersion("1.2.0")).isFalse();
     }
 
     @Test
     public void bundledSchemaIsTheOneItClaimsToBe() {
-        // 1.1.0 carries regex validators and the local GLiNER model path, and does not yet carry
-        // span disambiguation, which arrived in 1.2.0. Assert on the schema text so a mis-copied
-        // schema file fails the build.
-        assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"validator\"");
-        assertThat(schemaService.getSchemaJson("1.1.0")).contains("\"modelPath\"");
-        assertThat(schemaService.getSchemaJson("1.1.0")).doesNotContain("spanDisambiguation");
+        // 1.3.0 carries span disambiguation (from 1.2.0), and the policy metadata section and phone
+        // number leniency, which arrived in 1.3.0. Assert on the schema text so a mis-copied schema
+        // file fails the build.
+        assertThat(schemaService.getSchemaJson("1.3.0")).contains("spanDisambiguation");
+        assertThat(schemaService.getSchemaJson("1.3.0")).contains("\"metadata\"");
+        assertThat(schemaService.getSchemaJson("1.3.0")).contains("\"leniency\"");
     }
 
     @Test
     public void bundledCryptoSchemaDoesNotRequireAnInitializationVector() {
         // Per-value AES-GCM nonces replaced the configured "iv".
         final String policy = "{\"crypto\":{\"key\":\"env:CRYPTO_KEY\"},\"identifiers\":{}}";
-        assertThat(schemaService.validate("1.1.0", policy)).isEmpty();
+        assertThat(schemaService.validate("1.3.0", policy)).isEmpty();
     }
 
     @Test
@@ -174,15 +174,15 @@ public class PolicyEditorApplicationTests {
     public void shouldListSchemas() {
         ResponseEntity<Map> response = restTemplate.getForEntity(getUrl("/api/schemas"), Map.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody().get("version")).isEqualTo("1.1.0");
-        assertThat(response.getBody().get("supportedTestVersion")).isEqualTo("1.1.0");
+        assertThat(response.getBody().get("version")).isEqualTo("1.3.0");
+        assertThat(response.getBody().get("supportedTestVersion")).isEqualTo("1.3.0");
         // The multi-version selector is gone, so nothing advertises a list of versions.
         assertThat(response.getBody()).doesNotContainKey("versions");
     }
 
     @Test
     public void shouldServeSchemaForVersion() {
-        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/api/schemas/1.1.0"), String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/api/schemas/1.3.0"), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"$defs\"");
         assertThat(response.getBody()).contains("baseFilterStrategy");
@@ -203,7 +203,7 @@ public class PolicyEditorApplicationTests {
     public void shouldValidateConformingPolicy() {
         final String policy = "{\"identifiers\":{\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":true");
     }
@@ -213,7 +213,7 @@ public class PolicyEditorApplicationTests {
         // "name" is not an allowed top-level property (additionalProperties: false).
         final String policy = "{\"name\":\"bad\",\"identifiers\":{}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":false");
     }
@@ -221,17 +221,17 @@ public class PolicyEditorApplicationTests {
     @Test
     public void shouldAcceptSchemaLinkInPolicy() {
         // $schema is a JSON Schema keyword and must not be treated as a forbidden additional property.
-        final String policy = "{\"$schema\":\"https://www.philterd.ai/schemas/redaction-policy/1.1.0/schema.json\"," +
+        final String policy = "{\"$schema\":\"https://www.philterd.ai/schemas/redaction-policy/1.3.0/schema.json\"," +
                 "\"identifiers\":{\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"valid\":true");
     }
 
     @Test
     public void shouldTestPolicyForSupportedVersion() {
-        final String body = "{\"version\":\"1.1.0\",\"text\":\"My age is 25.\"," +
+        final String body = "{\"version\":\"1.3.0\",\"text\":\"My age is 25.\"," +
                 "\"policy\":{\"identifiers\":{\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
                 getUrl("/test-policy"), jsonEntity(body), String.class);
@@ -251,16 +251,24 @@ public class PolicyEditorApplicationTests {
         // The compiled policy JSON (carried as a string field) is the native Phileas shape.
         assertThat(response.getBody()).contains("ssnFilterStrategies");
         assertThat(response.getBody()).contains("MASK");
-        // PhiSQL 1.2.0 compiles to schema 1.1.0, the version this editor authors.
-        assertThat(response.getBody()).contains("\"schemaVersion\":\"1.1.0\"");
+        // PhiSQL 1.6.0 compiles to schema 1.3.0, the version this editor authors.
+        assertThat(response.getBody()).contains("\"schemaVersion\":\"1.3.0\"");
     }
 
     @Test
-    public void shouldRejectFeaturesFromNewerSchemaVersions() {
-        // Span disambiguation arrived in schema 1.2.0, which this build does not author.
+    public void shouldAcceptFeaturesFromTheBundledSchemaVersion() {
+        // Span disambiguation arrived in schema 1.2.0, so the bundled 1.3.0 accepts it.
         final String policy = "{\"config\":{\"analysis\":{\"spanDisambiguation\":false}},\"identifiers\":{}}";
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getUrl("/api/validate/1.1.0"), jsonEntity(policy), String.class);
+                getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class);
+        assertThat(response.getBody()).contains("\"valid\":true");
+    }
+
+    @Test
+    public void shouldRejectPropertiesTheSchemaDoesNotDefine() {
+        final String policy = "{\"config\":{\"analysis\":{\"notAnOption\":false}},\"identifiers\":{}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class);
         assertThat(response.getBody()).contains("\"valid\":false");
     }
 
@@ -303,7 +311,7 @@ public class PolicyEditorApplicationTests {
     public void sampleTextShouldExerciseTheFilters() {
         // A sample that detects nothing would teach the user nothing, so check one end to end.
         final String sample = restTemplate.getForObject(getUrl("/samples/clinical-note.txt"), String.class);
-        final String body = "{\"version\":\"1.1.0\",\"text\":" + quoteJson(sample) + "," +
+        final String body = "{\"version\":\"1.3.0\",\"text\":" + quoteJson(sample) + "," +
                 "\"policy\":{\"identifiers\":{" +
                 "\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
                 "\"age\":{\"ageFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
@@ -323,7 +331,7 @@ public class PolicyEditorApplicationTests {
     public void shouldExplainSpansAcrossSeveralEntityTypes() {
         // The highlights are drawn from these spans, so the explanation has to carry one per
         // detection with the offsets and the replacement that shifted them.
-        final String body = "{\"version\":\"1.1.0\"," +
+        final String body = "{\"version\":\"1.3.0\"," +
                 "\"text\":\"Patient John, SSN 123-45-6789, seen on 2026-01-15.\"," +
                 "\"policy\":{\"identifiers\":{" +
                 "\"ssn\":{\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
@@ -345,7 +353,7 @@ public class PolicyEditorApplicationTests {
     public void shouldReportSpansThatWereIdentifiedButNotApplied() {
         // An ignored value is detected and left in the clear. It appears among the identified spans
         // but not the applied ones, which is what lets the editor mark it differently.
-        final String body = "{\"version\":\"1.1.0\",\"text\":\"SSN 123-45-6789 on 2026-01-15.\"," +
+        final String body = "{\"version\":\"1.3.0\",\"text\":\"SSN 123-45-6789 on 2026-01-15.\"," +
                 "\"policy\":{\"identifiers\":{" +
                 "\"ssn\":{\"ignored\":[\"123-45-6789\"],\"ssnFilterStrategies\":[{\"strategy\":\"REDACT\"}]}," +
                 "\"date\":{\"dateFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
@@ -372,6 +380,33 @@ public class PolicyEditorApplicationTests {
         assertThat(response.getBody()).contains("\"success\":true");
         assertThat(response.getBody()).contains("REDACT SSN WITH MASK;");
         assertThat(response.getBody()).contains("\"fileName\":\"clinic_policy.phisql\"");
+    }
+
+    @Test
+    public void shouldExportADeprecatedStrategiesFieldName() {
+        // Schema 1.3.0 renamed zipCodeFilterStrategy to zipCodeFilterStrategies and still accepts
+        // the old name, so an uploaded policy that uses it must still export.
+        final String body = "{\"name\":\"p\",\"policy\":{\"identifiers\":{" +
+                "\"zipCode\":{\"zipCodeFilterStrategy\":[{\"strategy\":\"REDACT\"}]}}}}";
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                getUrl("/api/phisql"), jsonEntity(body), String.class);
+
+        assertThat(response.getBody()).contains("\"success\":true");
+        assertThat(response.getBody()).contains("REDACT ZIP_CODE WITH REDACT;");
+    }
+
+    @Test
+    public void everyPresetShouldValidateAndExport() {
+        for (final String preset : List.of("financial", "healthcare", "legal")) {
+            final String policy = restTemplate.getForObject(
+                    getUrl("/presets/1.3.0/" + preset + ".json"), String.class);
+
+            assertThat(restTemplate.postForObject(getUrl("/api/validate/1.3.0"), jsonEntity(policy), String.class))
+                    .as(preset).contains("\"valid\":true");
+            assertThat(restTemplate.postForObject(getUrl("/api/phisql"),
+                    jsonEntity("{\"name\":\"" + preset + "\",\"policy\":" + policy + "}"), String.class))
+                    .as(preset).contains("\"success\":true");
+        }
     }
 
     @Test
@@ -409,7 +444,7 @@ public class PolicyEditorApplicationTests {
     public void shouldExplainThatModelBackedFiltersCannotBeTested() {
         // PhEye detects with a model hosted elsewhere, and the editor calls no such service. The
         // user gets a sentence about it rather than a NullPointerException from inside Phileas.
-        final String body = "{\"version\":\"1.1.0\",\"text\":\"John Smith lives in Boston.\"," +
+        final String body = "{\"version\":\"1.3.0\",\"text\":\"John Smith lives in Boston.\"," +
                 "\"policy\":{\"identifiers\":{\"pheyes\":[{" +
                 "\"phEyeConfiguration\":{\"endpoint\":\"http://localhost:9999/\"}," +
                 "\"phEyeFilterStrategies\":[{\"strategy\":\"REDACT\"}]}]}}}";
@@ -426,7 +461,7 @@ public class PolicyEditorApplicationTests {
     @Test
     public void shouldExplainThatTheDeprecatedPersonFilterCannotBeTestedEither() {
         // "person" is the deprecated spelling of the same PhEye filter.
-        final String body = "{\"version\":\"1.1.0\",\"text\":\"John Smith lives in Boston.\"," +
+        final String body = "{\"version\":\"1.3.0\",\"text\":\"John Smith lives in Boston.\"," +
                 "\"policy\":{\"identifiers\":{\"person\":{" +
                 "\"phEyeConfiguration\":{\"endpoint\":\"http://localhost:9999/\"}," +
                 "\"phEyeFilterStrategies\":[{\"strategy\":\"REDACT\"}]}}}}";
@@ -443,6 +478,6 @@ public class PolicyEditorApplicationTests {
         ResponseEntity<String> response = restTemplate.postForEntity(
                 getUrl("/test-policy"), jsonEntity(body), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).contains("only available for schema version 1.1.0");
+        assertThat(response.getBody()).contains("only available for schema version 1.3.0");
     }
 }

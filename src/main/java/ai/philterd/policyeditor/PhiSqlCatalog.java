@@ -57,8 +57,12 @@ public class PhiSqlCatalog {
         }
     }
 
-    /** An entity type: its PhiSQL keyword and the two Phileas fields it maps to. */
-    public record Entity(String name, String phileasField, String phileasStrategiesField) {
+    /**
+     * An entity type: its PhiSQL keyword, the two Phileas fields it maps to, and any earlier names of
+     * the strategies field that the schema still accepts.
+     */
+    public record Entity(String name, String phileasField, String phileasStrategiesField,
+                         List<String> phileasStrategiesFieldAliases) {
     }
 
     private final Map<String, Entity> entitiesByField = new LinkedHashMap<>();
@@ -71,10 +75,13 @@ public class PhiSqlCatalog {
 
         final JsonNode entities = read(mapper, ENTITY_TYPES).path("entities");
         for (final JsonNode entity : entities) {
+            final List<String> aliases = new ArrayList<>();
+            entity.path("phileas_strategies_field_aliases").forEach(a -> aliases.add(a.asText()));
             final Entity e = new Entity(
                     entity.path("name").asText(),
                     entity.path("phileas_field").asText(),
-                    entity.path("phileas_strategies_field").asText());
+                    entity.path("phileas_strategies_field").asText(),
+                    aliases);
             entitiesByField.put(e.phileasField(), e);
         }
 

@@ -73,8 +73,8 @@ runtime can run, so a policy built here can always be tested here. The schema is
 
 | Bundled dependency | Version | Redaction policy schema |
 |--------------------|---------|-------------------------|
-| Phileas (Test Policy) | 4.2.0 | 1.1.0 |
-| PhiSQL (Author with PhiSQL) | 1.2.0 | 1.1.0 |
+| Phileas (Test Policy) | 4.5.0 | 1.3.0 |
+| PhiSQL (Author with PhiSQL) | 1.6.0 | 1.3.0 |
 
 All three move together. Advancing the schema means bumping Phileas to a release that supports the
 new version, bumping PhiSQL to the release that compiles to it, swapping the bundled schema file, and

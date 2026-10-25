@@ -36,7 +36,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import tools.jackson.databind.JsonNode;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +139,7 @@ public class PolicyController {
         if (customHeaderFile != null) {
             final File file = new File(customHeaderFile);
             if (file.exists()) {
-                final String customHeader = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                final String customHeader = Files.readString(file.toPath(), StandardCharsets.UTF_8);
                 model.addAttribute("customHeader", customHeader);
             }
         }
@@ -148,7 +148,7 @@ public class PolicyController {
         if (customFooterFile != null) {
             final File file = new File(customFooterFile);
             if (file.exists()) {
-                final String customFooter = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                final String customFooter = Files.readString(file.toPath(), StandardCharsets.UTF_8);
                 model.addAttribute("customFooter", customFooter);
             }
         }

@@ -74,9 +74,9 @@ public class PhiSqlEmitterTests {
 
     @Test
     public void shouldEmitConditionsThatSurviveTheRoundTrip() {
-        // PhiSQL 1.2.0 compiles a WHERE clause to "conditions" rather than "condition", so the
-        // service falls back to the argument form. Either way the policy has to come back intact,
-        // which the service verifies before returning anything.
+        // PhiSQL before 1.3.0 compiled a WHERE clause to "conditions" rather than "condition", and
+        // the service falls back to the argument form when that happens. Either way the policy has
+        // to come back intact, which the service verifies before returning anything.
         final String phiSql = emit("{\"identifiers\":{\"creditCard\":{\"creditCardFilterStrategies\":" +
                 "[{\"strategy\":\"LAST_4\",\"condition\":\"confidence > 0.85\"}]}}}");
         assertThat(phiSql).contains("confidence > 0.85");

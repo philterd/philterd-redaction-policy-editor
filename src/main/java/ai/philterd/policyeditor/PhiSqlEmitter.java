@@ -65,9 +65,9 @@ public class PhiSqlEmitter {
     /**
      * @param conditionsAsArguments write a strategy condition as a named argument instead of a
      *        {@code WHERE} clause. The clause reads better and is what a person would write, but
-     *        PhiSQL 1.2.0 compiles it to {@code conditions} rather than {@code condition}
-     *        (fixed upstream in 1.3.0), so a policy with a condition does not survive the round trip
-     *        that way. The argument form compiles to the right field on every version.
+     *        PhiSQL before 1.3.0 compiled it to {@code conditions} rather than {@code condition},
+     *        so a policy with a condition did not survive the round trip that way. The argument
+     *        form compiles to the right field on every version.
      */
     public String emit(final JsonNode policy, final String policyName, final boolean conditionsAsArguments) {
         this.conditionsAsArguments = conditionsAsArguments;

@@ -16,13 +16,10 @@
       "phoneNumberFilterStrategies": [{ "strategy": "REDACT" }]
     },
     "zipCode": {
-      "zipCodeFilterStrategy": [{ "strategy": "REDACT" }]
+      "zipCodeFilterStrategies": [{ "strategy": "REDACT" }]
     },
     "emailAddress": {
       "emailAddressFilterStrategies": [{ "strategy": "REDACT" }]
-    },
-    "physicianName": {
-      "physicianNameFilterStrategies": [{ "strategy": "REDACT" }]
     },
     "hospital": {
       "hospitalFilterStrategies": [{ "strategy": "REDACT" }]

@@ -459,7 +459,11 @@
             const f = buildField(k, props[k]);
             fields[k] = f;
             parent.appendChild(f.el);
-            if (f._autoSeed && f.addItem) {
+            // A deprecated strategies array (zipCodeFilterStrategy) sits beside its replacement.
+            // Seeding it too would emit both, and Phileas applies whichever comes last.
+            const deprecated = (props[k] && props[k].deprecated) ||
+                (resolveRef(props[k]) && resolveRef(props[k]).deprecated);
+            if (f._autoSeed && f.addItem && !deprecated) {
                 f.addItem(f._seed);
             }
         }
