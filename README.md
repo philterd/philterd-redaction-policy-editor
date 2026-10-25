@@ -24,7 +24,8 @@ Documentation is available at https://philterd.github.io/philterd-redaction-poli
 - **Policy Testing**: Test your policies against sample text directly in the browser and view detailed
   redaction explanations. Testing runs the bundled Phileas engine, so it is available for the schema
   version that engine supports (see `phileas.supported-schema-version`).
-- **Health and Metrics**: `/actuator/health` and `/actuator/prometheus` for monitoring and scraping.
+- **Health and Metrics**: `/api/health` reports the status and application version, and
+  `/actuator/health` and `/actuator/prometheus` cover probing and scraping.
 - **Docker Support**: Easy deployment using Docker and Docker Compose.
 
 ## Configuration
@@ -44,17 +45,22 @@ the bundled Phileas runtime, which is also the version the editor authors.
 
 ## Health and metrics
 
-Two Spring Boot Actuator endpoints are exposed, matching Philter:
+Three endpoints are exposed for monitoring:
 
 | Endpoint | Description |
 |----------|-------------|
+| `/api/health` | Returns `{"status":"UP","applicationVersion":"<version>"}` with HTTP 200 while the application is serving. |
 | `/actuator/health` | Returns `{"status":"UP"}` with HTTP 200 while the application is serving. |
 | `/actuator/prometheus` | JVM, process, Tomcat session, and HTTP request metrics in Prometheus text format. |
 
-Both are reachable without authentication. No other actuator endpoint responds: exposure is limited
-to these two (`management.endpoints.web.exposure.include`) and the discovery index at `/actuator` is
-turned off (`management.endpoints.web.discovery.enabled=false`), so everything else returns 404.
-Override either property to change what is published.
+`/api/health` is the health contract shared across Philterd products, and is the one that reports the
+application version. The two actuator endpoints match Philter.
+
+All three are reachable without authentication. No actuator endpoint beyond the two above responds:
+actuator exposure is limited to `health,prometheus` (`management.endpoints.web.exposure.include`) and
+the discovery index at `/actuator` is turned off (`management.endpoints.web.discovery.enabled=false`),
+so everything else under `/actuator` returns 404. Override either property to change what is
+published.
 
 `docker-compose.yml` uses `/actuator/health` as the container healthcheck, so `docker compose ps`
 reports the application healthy only once it answers with an `UP` status.

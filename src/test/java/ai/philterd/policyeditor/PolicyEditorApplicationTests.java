@@ -17,6 +17,7 @@ package ai.philterd.policyeditor;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -38,6 +39,11 @@ public class PolicyEditorApplicationTests {
 
     @Autowired
     private SchemaService schemaService;
+
+    // Present when the build wrote META-INF/build-info.properties, which Maven does and an IDE
+    // build does not.
+    @Autowired(required = false)
+    private BuildProperties buildProperties;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -99,6 +105,22 @@ public class PolicyEditorApplicationTests {
         ResponseEntity<String> response = restTemplate.getForEntity(getUrl("/actuator/health"), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).contains("\"status\":\"UP\"");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldReportHealthWithApplicationVersion() {
+        // The health contract shared across Philterd products: unauthenticated, HTTP 200, and a JSON
+        // body carrying the status and the version of the running build.
+        ResponseEntity<Map> response = restTemplate.getForEntity(getUrl("/api/health"), Map.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+        assertThat(response.getBody().get("status")).isEqualTo("UP");
+
+        // The version is the one from BuildProperties, so the endpoint reports what was actually
+        // built rather than a hard-coded string.
+        final String expected = (buildProperties != null) ? buildProperties.getVersion() : "unknown";
+        assertThat(response.getBody().get("applicationVersion")).isEqualTo(expected);
     }
 
     @Test
